@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import calendar
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 import random
 from pathlib import Path
@@ -82,16 +83,6 @@ WRAP_TEXT_KEYS = {
     "app__category_assess",
 }
 
-PRODUCT_TYPES_STR = (
-    "System software: Operating System, Chinese Processing System, Network System, "
-    "Embedded Operating System, Other; Support software: Programming Language, "
-    "Database System Design, Tools, Network Communication Software, Middleware, Other; "
-    "Application software: Industry Management Software, Office Software, Pattern "
-    "Recognition Software, Graphics Software, Control Software, Network Application "
-    "Software, Information Management Software, Database Management Application Software, "
-    "Security and Confidentiality Software, Embedded Application Software, Education Software, "
-    "Game Software."
-)
 
 PRODUCT_TYPE_PREFIX = {
     "Operating System": "\u7cfb\u7edf\u8f6f\u4ef6-",
@@ -145,19 +136,6 @@ PRODUCT_TYPE_CN = {
     "Game Software": "\u6e38\u620f\u8f6f\u4ef6",
 }
 
-CATEGORY_IDS_STR = (
-    "01 \u64cd\u4f5c\u7cfb\u7edf; 02 \u5de5\u5177\u8f6f\u4ef6\u4e0e\u5e73\u53f0\u7cfb\u7edf; "
-    "03 \u4e2d\u95f4\u4ef6; 04 \u4fe1\u606f\u5b89\u5168; 05 \u5176\u5b83\u57fa\u7840\u8f6f\u4ef6; "
-    "06 \u4fe1\u606f\u901a\u8baf(ICT); 07 \u6570\u5b57\u88c5\u5907; 08 \u533b\u7597\u8bbe\u5907; "
-    "09 \u5546\u7528\u53ca\u529e\u516c\u8bbe\u5907; 10 \u6570\u5b57\u7535\u89c6; 11 \u6c7d\u8f66\u7535\u5b50; "
-    "12 \u8ba1\u7b97\u673a\u53ca\u8bbe\u5907; 13 \u6d88\u8d39\u7535\u5b50; 14 \u4fe1\u606f\u5bb6\u7535; "
-    "15 \u5176\u4ed6\u901a\u8baf\u548c\u5de5\u4e1a; 16 \u529e\u516c\u548c\u7ba1\u7406; "
-    "17 \u4f01\u4e1a\u7ba1\u7406; 18 \u7535\u5b50\u653f\u52a1; 19 \u533b\u7597\u536b\u751f; "
-    "20 \u6559\u80b2; 21 \u5730\u7406\u4fe1\u606f; 22 \u91d1\u878d; 23 \u4ea4\u901a\u7269\u6d41; "
-    "24 \u6587\u5316\u521b\u610f; 25 \u5546\u8d38\u65c5\u6e38; 26 \u901a\u8baf\u7f51\u7edc\u670d\u52a1; "
-    "27 \u80fd\u6e90\u548c\u73af\u4fdd; 28 \u5efa\u7b51\u7269\u4e1a; 29 \u4e92\u8054\u7f51\u670d\u52a1; "
-    "30 \u5176\u4ed6\u8ba1\u7b97\u673a\u5e94\u7528\u8f6f\u4ef6\u548c\u4fe1\u606f\u670d\u52a1; 31 IC\u8bbe\u8ba1."
-)
 
 CATEGORY_ID_OPTIONS = {
     "01 \u64cd\u4f5c\u7cfb\u7edf",
@@ -193,25 +171,9 @@ CATEGORY_ID_OPTIONS = {
     "31 IC\u8bbe\u8ba1",
 }
 
-AI_TECH_KEYS = {
-    "tech__hardware_dev",
-    "tech__hardware_run",
-    "tech__os_dev",
-    "tech__os_run",
-    "tech__dev_tools",
-    "tech__run_support",
-    "tech__language",
-    "tech__dev_purpose",
-    "tech__main_functions",
-    "tech__features",
-    "tech__source_lines",
-}
-
 FIELD_PROMPTS = {
     "product__service_object": "从本段提炼服务对象，写成一句中文短语，仅说明面向人群/组织，不要写目的，80-120字。",
-    "tech__dev_purpose": "概括开发目的与要解决的问题，中文一句话，务实、不夸张，80-120字。",
     "product__main_functions": "基于模块列表总结主要功能，80-120字，面向使用场景。",
-    "product__func_list": "输出功能列表：每项包含name与desc。desc必须以“可以”开头，20字以内，单句说明具体功能，不要标点。",
     "product__tech_specs": "提炼3-5条技术指标式描述，中文短句，偏可验证特性。",
     "product__app_domain": "提取应用领域，中文短语，不带英文或括号。",
     "env__dev_platform": "概括开发平台，30-60字，避免硬件细节，只保留OS/主要工具/框架。",
@@ -223,48 +185,46 @@ FIELD_PROMPTS = {
     "env__language": "提取编程语言，使用原文名称，必须输出完整名字，不允许缩写。",
     "env__database": "提取数据库类型/版本，若多项取主库。",
     "env__os_version": "提取开发OS及版本，保持原文格式。",
-    "env__server_os": "输出服务器端操作系统+版本号，必须具体明确。",
     "env__server_soft": "输出服务器端应用软件列表，可多项，每项必须为软件名+版本号。",
-    "env__server_model": "生成服务器机器名，必须为品牌+型号格式（如 Dell PowerEdge R740），选当前主流品牌，不要使用过旧型号。",
-    "env__server_config": "输出服务器配置，三行：CPU：… 内存：… 硬盘：…",
-    "env__client_os": "输出客户端操作系统+版本号，必须具体明确。",
     "env__client_soft": "输出客户端应用软件列表，可多项，每项必须为软件名+版本号。",
-    "env__client_model": "生成客户端机器名，必须为品牌+型号格式（如 Lenovo ThinkPad T14 Gen 4），选当前主流品牌，不要使用过旧型号。",
-    "env__client_config": "输出客户端配置，三行：CPU：… 内存：… 硬盘：…",
 }
 
-FIELD_SECTION_MAP = {
-    "product__service_object": ["3.1"],
-    "product__main_functions": ["3.2", "3.3"],
-    "product__func_list": ["3.3"],
-    "product__tech_specs": ["4.1", "4.2", "4.3", "4.4", "4.5"],
-    "product__app_domain": ["3.2", "3.3"],
-    "env__dev_platform": ["2.1"],
-    "env__run_platform": ["2.2"],
-    "env__hw_dev_platform": ["2.1"],
-    "env__sw_dev_platform": ["2.1"],
-    "env__memory_req": ["2.2"],
-    "env__hardware_model": ["2.2"],
-    "env__language": ["2.1"],
-    "env__database": ["2.1", "4.4"],
-    "env__os_version": ["2.1"],
-    "env__server_os": [],
-    "env__server_soft": ["2.2"],
-    "env__server_model": [],
-    "env__server_config": [],
-    "env__client_os": [],
-    "env__client_soft": ["2.2"],
-    "env__client_model": [],
-    "env__client_config": [],
+FIELD_TITLE_KEYWORDS = {
+    "product__service_object": ["开发目的", "目标", "定位"],
+    "product__main_functions": ["主要功能", "功能架构", "功能详述", "模块"],
+    "product__func_list": ["主要功能", "功能详述", "模块"],
+    "product__tech_specs": ["技术特点", "技术特性", "非功能性", "性能", "可靠性", "扩展性"],
+    "product__app_domain": ["应用领域", "应用场景", "功能"],
+    "env__dev_platform": ["开发环境", "开发平台"],
+    "env__run_platform": ["运行环境", "部署环境", "软件运行环境"],
+    "env__hw_dev_platform": ["开发环境", "硬件环境"],
+    "env__sw_dev_platform": ["开发环境", "开发工具", "软件开发环境"],
+    "env__memory_req": ["运行环境", "硬件", "硬件环境"],
+    "env__hardware_model": ["运行环境", "硬件", "硬件环境"],
+    "env__language": ["开发环境", "开发语言", "技术栈"],
+    "env__database": ["数据库", "开发环境", "运行环境", "核心数据库"],
+    "env__os_version": ["开发环境", "操作系统"],
+    "env__server_soft": ["运行环境", "支撑软件", "软件运行环境"],
+    "env__client_soft": ["运行环境", "客户端", "浏览器"],
 }
 
-NO_SECTION_FIELDS = {
-    "env__server_model",
-    "env__client_model",
-    "env__server_config",
-    "env__client_config",
-    "env__server_os",
-    "env__client_os",
+FIELD_QUERIES = {
+    "product__service_object": "服务对象 面向用户 目标群体 适用对象",
+    "product__main_functions": "主要功能 功能架构 模块 功能描述",
+    "product__func_list": "功能模块 主要功能 详述 模块名称",
+    "product__tech_specs": "技术指标 技术特点 高性能 高可靠 可扩展 安全",
+    "product__app_domain": "应用领域 应用场景 行业",
+    "env__dev_platform": "开发平台 开发环境 工具 框架",
+    "env__run_platform": "运行平台 运行环境 部署平台",
+    "env__hw_dev_platform": "开发硬件 环境 配置",
+    "env__sw_dev_platform": "开发工具 框架 IDE OS",
+    "env__memory_req": "内存要求 内存",
+    "env__hardware_model": "适用机型 硬件 设备",
+    "env__language": "开发语言 编程语言 前端 后端",
+    "env__database": "数据库 类型 版本 MySQL PostgreSQL Oracle",
+    "env__os_version": "操作系统 版本",
+    "env__server_soft": "服务器 软件 中间件 数据库 运行支撑",
+    "env__client_soft": "客户端 软件 浏览器",
 }
 
 SERVER_MODEL_POOL = [
@@ -443,62 +403,324 @@ def call_llm_json(
         return {}
 
 
-def build_section_map(text: str) -> dict[str, str]:
-    sections: dict[str, list[str]] = {}
-    current = None
+def _chinese_numeral_to_int(value: str) -> int | None:
+    mapping = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9, "十": 10}
+    if value in mapping:
+        return mapping[value]
+    if len(value) == 2 and value.startswith("十"):
+        return 10 + mapping.get(value[1], 0)
+    if len(value) == 2 and value.endswith("十"):
+        return mapping.get(value[0], 0) * 10
+    if len(value) == 3 and value[1] == "十":
+        return mapping.get(value[0], 0) * 10 + mapping.get(value[2], 0)
+    return None
+
+
+def build_section_map(text: str) -> dict[str, dict[str, str]]:
+    sections: dict[str, dict[str, str]] = {}
+    current_id = None
+    current_title = None
     for line in text.splitlines():
         line_stripped = line.strip()
         if not line_stripped:
-            if current is not None:
-                sections[current].append(line)
+            if current_id is not None:
+                sections[current_id]["content"] += line + "\n"
             continue
         heading_match = re.match(r"^#+\s*(.+)$", line_stripped)
         if heading_match:
             heading = heading_match.group(1).strip()
-            num_match = re.match(r"^(\d+(?:\.\d+)+)\s+.*", heading)
+            num_match = re.match(r"^(\d+(?:\.\d+)+)\s+(.+)$", heading)
             if num_match:
-                current = num_match.group(1)
-                sections.setdefault(current, []).append(line)
+                current_id = num_match.group(1)
+                current_title = num_match.group(2).strip()
+                sections.setdefault(current_id, {"title": current_title, "content": ""})
                 continue
-            chapter_match = re.match(r"^第([一二三四五六七八九十]+)章\s+.*", heading)
+            chapter_match = re.match(r"^第([一二三四五六七八九十]+)章\s+(.+)$", heading)
             if chapter_match:
-                current = chapter_match.group(1)
-                sections.setdefault(current, []).append(line)
+                num = _chinese_numeral_to_int(chapter_match.group(1))
+                current_id = str(num) if num else chapter_match.group(1)
+                current_title = chapter_match.group(2).strip()
+                sections.setdefault(current_id, {"title": current_title, "content": ""})
                 continue
-        if current is not None:
-            sections[current].append(line)
-    return {key: "\n".join(lines).strip() for key, lines in sections.items() if any(lines)}
+            current_id = f"title:{heading}"
+            current_title = heading
+            sections.setdefault(current_id, {"title": current_title, "content": ""})
+            continue
+        if current_id is not None:
+            sections[current_id]["content"] += line + "\n"
+    return {
+        key: {"title": value.get("title", ""), "content": value.get("content", "").strip()}
+        for key, value in sections.items()
+        if value.get("content", "").strip()
+    }
 
 
-def collect_section_text(section_map: dict[str, str], keys: list[str]) -> str:
+@dataclass
+class Chunk:
+    text: str
+    section_id: str | None = None
+    section_title: str | None = None
+
+
+def split_into_chunks(full_text: str, max_chars: int = 600, overlap: int = 80) -> list[Chunk]:
+    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", full_text) if p.strip()]
+    chunks: list[Chunk] = []
+    buf = ""
+    for paragraph in paragraphs:
+        if len(buf) + len(paragraph) + 2 <= max_chars:
+            buf += ("\n\n" + paragraph) if buf else paragraph
+        else:
+            if buf:
+                chunks.append(Chunk(text=buf))
+            buf = (buf[-overlap:] + "\n\n" + paragraph) if overlap > 0 else paragraph
+    if buf:
+        chunks.append(Chunk(text=buf))
+    return chunks
+
+
+def build_section_chunks(section_map: dict[str, dict[str, str]], max_chars: int = 900) -> list[Chunk]:
+    chunks: list[Chunk] = []
+    for section_id, section in section_map.items():
+        title = section.get("title", "")
+        content = section.get("content", "").strip()
+        if not content:
+            continue
+        if len(content) <= max_chars:
+            chunks.append(Chunk(text=content, section_id=section_id, section_title=title))
+        else:
+            for sub in split_into_chunks(content, max_chars=max_chars, overlap=120):
+                sub.section_id = section_id
+                sub.section_title = title
+                chunks.append(sub)
+    return chunks
+
+
+MODULE_TITLE_WORDS = ["模块", "子系统", "平台", "中心", "后台", "工作台", "服务", "系统", "应用", "调度", "管理"]
+MODULE_TEXT_HINTS = ["功能模块", "模块包括", "系统包括", "系统由", "主要模块", "功能组成"]
+FALLBACK_MIN_MODULES = 3
+
+
+def is_module_candidate(chunk_title: str | None, chunk_text: str) -> bool:
+    title = (chunk_title or "").strip()
+    content = (chunk_text or "").strip()
+    if any(word in title for word in MODULE_TITLE_WORDS):
+        return True
+    if any(hint in content for hint in MODULE_TEXT_HINTS):
+        return True
+    return False
+
+
+def clean_module_title(title: str) -> str:
+    cleaned = title.strip()
+    cleaned = re.sub(r"^\d+(\.\d+)*\s*[\.\、]?\s*", "", cleaned)
+    cleaned = re.sub(r"（.*?）|\(.*?\)", "", cleaned).strip()
+    cleaned = cleaned.replace("“", "").replace("”", "").replace('"', "")
+    cleaned = re.sub(r"[：:，,。\.]+$", "", cleaned).strip()
+    return cleaned
+
+
+def collect_module_candidates_from_chunks(chunks: list[Chunk]) -> list[str]:
+    titles: list[str] = []
+    for chunk in chunks:
+        if is_module_candidate(chunk.section_title, chunk.text):
+            if chunk.section_title:
+                titles.append(clean_module_title(chunk.section_title))
+    seen: set[str] = set()
+    result: list[str] = []
+    for title in titles:
+        if len(title) < 4:
+            continue
+        if title not in seen:
+            seen.add(title)
+            result.append(title)
+    return result
+
+
+def build_module_query(title: str) -> str:
+    return f"{title} 功能 支持 用于 提供 实现 可以"
+
+
+def normalize_func_desc(desc: str, max_len: int = 20) -> str:
+    cleaned = re.sub(r"[，。；、,.;:：]", "", desc)
+    cleaned = re.sub(r"\s+", "", cleaned)
+    if not cleaned:
+        return ""
+    if not cleaned.startswith("可以"):
+        cleaned = "可以" + cleaned
+    if len(cleaned) > max_len:
+        cleaned = cleaned[:max_len]
+    return cleaned
+
+
+def normalize_llm_func_items_from_response(response: dict) -> list[dict[str, str]]:
+    items = response.get("items") if isinstance(response, dict) else None
+    if not isinstance(items, list):
+        return []
+    return normalize_llm_func_items(items)
+
+
+def extract_func_items(
+    full_text: str,
+    section_chunks: list[Chunk],
+    client: OpenAI,
+    model: str,
+) -> list[dict[str, str]]:
+    if not section_chunks:
+        return []
+    retriever = BM25Retriever(section_chunks)
+    evidences = build_module_evidences(section_chunks, retriever)
+    if len(evidences) < FALLBACK_MIN_MODULES:
+        return []
+    system_prompt = (
+        "你是软件测评文档编写助手。请根据每个模块的证据文本，输出“产品测试功能表”所需内容。"
+        "输出为 JSON 对象，包含 items 数组。"
+        "每个元素包含字段：一级功能、功能描述。"
+        "一级功能使用给定 module_title（可清理但不要新增模块）。"
+        "功能描述必须以“可以”开头，仅一句话，25~60个中文字符。"
+        "不要出现编号、引号、冒号，不要出现“本模块/该模块/它”等代词。"
+        "只输出 JSON，不要解释。"
+    )
+    user_prompt = json.dumps(evidences, ensure_ascii=False)
+    response = call_llm_json(client, model, system_prompt, user_prompt, temperature=0.2)
+    return normalize_llm_func_items_from_response(response)
+
+
+def filter_chunks_by_title_keywords(field: str, chunks: list[Chunk], min_keep: int = 6) -> list[Chunk]:
+    keywords = FIELD_TITLE_KEYWORDS.get(field)
+    if not keywords:
+        return chunks
+    filtered = []
+    for chunk in chunks:
+        title = chunk.section_title or ""
+        if any(keyword in title for keyword in keywords):
+            filtered.append(chunk)
+    return filtered if len(filtered) >= min_keep else chunks
+
+
+def tokenize(text: str) -> list[str]:
+    text = re.sub(r"\s+", " ", text)
+    tokens = re.findall(r"[\u4e00-\u9fff]|[A-Za-z0-9]+", text)
+    return [token.lower() for token in tokens if token.strip()]
+
+
+class BM25Retriever:
+    def __init__(self, chunks: list[Chunk]):
+        self.chunks = chunks
+        self.corpus_tokens = [tokenize(chunk.text) for chunk in chunks]
+        try:
+            from rank_bm25 import BM25Okapi
+
+            self.bm25 = BM25Okapi(self.corpus_tokens)
+            self.use_bm25 = True
+        except Exception:
+            self.bm25 = None
+            self.use_bm25 = False
+
+    def retrieve(self, query: str, top_k: int = 4) -> list[tuple[Chunk, float]]:
+        if not self.chunks:
+            return []
+        query_tokens = tokenize(query)
+        if self.use_bm25 and self.bm25 is not None:
+            scores = self.bm25.get_scores(query_tokens)
+        else:
+            scores = []
+            for tokens in self.corpus_tokens:
+                score = sum(tokens.count(token) for token in query_tokens)
+                scores.append(float(score))
+        ranked = sorted(enumerate(scores), key=lambda x: x[1], reverse=True)[:top_k]
+        return [(self.chunks[i], float(score)) for i, score in ranked]
+
+
+def retrieve_evidence_for_module(title: str, retriever: BM25Retriever, top_k: int = 2) -> str:
+    results = retriever.retrieve(build_module_query(title), top_k=top_k)
     parts = []
-    for key in keys:
-        for section_key, section_text in section_map.items():
-            if section_key == key or section_key.startswith(f"{key}."):
-                text = section_text.strip()
-                if text:
-                    parts.append(text)
-    return "\n\n".join(parts)
+    for chunk, _score in results:
+        header = chunk.section_title or ""
+        parts.append(f"{header}\n{chunk.text}".strip())
+    return "\n\n---\n\n".join(parts)
+
+
+def build_module_evidences(chunks: list[Chunk], retriever: BM25Retriever) -> list[dict[str, str]]:
+    titles = collect_module_candidates_from_chunks(chunks)
+    evidences: list[dict[str, str]] = []
+    for title in titles:
+        evidence = retrieve_evidence_for_module(title, retriever, top_k=2)
+        if len(evidence) < 80:
+            continue
+        evidences.append({"module_title": title, "evidence": evidence})
+    return evidences
+
+
+def normalize_llm_func_items(items: list[dict[str, str]]) -> list[dict[str, str]]:
+    normalized: list[dict[str, str]] = []
+    for item in items:
+        title = clean_module_title(str(item.get("一级功能") or "").strip())
+        desc = str(item.get("功能描述") or "").strip()
+        if not title:
+            continue
+        desc = re.sub(r"\s+", "", desc)
+        desc = re.sub(r"^[\d\.\、]+", "", desc)
+        desc = desc.replace("：", "，").replace(":", "，")
+        desc = desc.replace("“", "").replace("”", "").replace('"', "")
+        if not desc.startswith("可以"):
+            desc = "可以" + desc
+        if len(desc) > 60:
+            desc = desc[:60] + "…"
+        desc = re.split(r"[。]", desc)[0]
+        normalized.append({"name": title, "desc": desc.rstrip("，,、")})
+    seen: set[str] = set()
+    final_items: list[dict[str, str]] = []
+    for item in normalized:
+        if item["name"] in seen:
+            continue
+        seen.add(item["name"])
+        final_items.append(item)
+    return final_items
+
+
+def get_context_for_field(
+    field: str,
+    full_text: str,
+    section_chunks: list[Chunk],
+    full_chunks: list[Chunk],
+    top_k: int = 4,
+    min_chars: int = 800,
+) -> str:
+    base_chunks = section_chunks if section_chunks else full_chunks
+    candidate_chunks = filter_chunks_by_title_keywords(field, base_chunks)
+    if not candidate_chunks:
+        candidate_chunks = full_chunks or base_chunks
+    query = FIELD_QUERIES.get(field, field.replace("__", " "))
+    retriever = BM25Retriever(candidate_chunks)
+    results = retriever.retrieve(query, top_k=top_k)
+    parts = []
+    for chunk, _score in results:
+        header = ""
+        if chunk.section_id or chunk.section_title:
+            header = f"[{chunk.section_id or ''} {chunk.section_title or ''}]".strip()
+        parts.append(f"{header}\n{chunk.text}".strip())
+    context = "\n\n---\n\n".join(parts).strip()
+    if len(context) < min_chars:
+        context = (context + "\n\n---\n\n" + full_text[:4000]).strip()
+    return context
 
 
 def extract_fields_by_prompt(
     client: OpenAI,
     model: str,
-    section_map: dict[str, str],
+    full_text: str,
+    section_chunks: list[Chunk],
+    full_chunks: list[Chunk],
     field_prompts: dict[str, str],
-    field_sections: dict[str, list[str]],
 ) -> dict:
     results: dict[str, object] = {}
     for field, prompt in field_prompts.items():
-        section_keys = field_sections.get(field, [])
-        section_text = collect_section_text(section_map, section_keys)
-        if not section_text and field not in NO_SECTION_FIELDS:
-            continue
         system_prompt = (
             "你只需输出JSON对象，且只包含一个字段。字段名必须严格等于要求的字段名，"
             f"字段名为 {field}。{prompt}"
         )
-        user_prompt = f"章节内容如下：\n{section_text}"
+        context = get_context_for_field(field, full_text, section_chunks, full_chunks)
+        user_prompt = f"章节内容如下：\n{context}"
         data = call_llm_json(client, model, system_prompt, user_prompt, temperature=0.2)
         if isinstance(data, dict) and field in data:
             results[field] = data[field]
@@ -693,69 +915,6 @@ def extract_rule_data(text: str) -> dict:
     data.update(extract_func_list_from_text(text))
     data.update(extract_env_from_tables(text))
     return data
-
-
-def extract_func_table(client: OpenAI, model: str, text: str, filename: str) -> dict:
-    system_prompt = (
-        "You are a software testing engineer. Extract the top-level functional modules for a product test function table. "
-        "Return JSON with key product__func_list. Each item must have name and desc. "
-        "desc must start with the Chinese word '可以', contain no punctuation, no numbering, no quotes or brackets. "
-        "desc length should be 10-20 Chinese characters."
-    )
-    user_prompt = f"Filename: {filename}\n\nManual excerpt:\n{text}"
-    return call_llm_json(client, model, system_prompt, user_prompt, temperature=0.1)
-
-
-def extract_reg_info(client: OpenAI, model: str, text: str, filename: str) -> dict:
-    system_prompt = (
-        "Extract registration-related fields and return JSON. Fields: app__name, app__version, app__short_name, "
-        "product__app_domain, env__dev_platform, env__dev_lang, env__run_platform. "
-        "Leave empty strings if unknown. product__app_domain must be Chinese only."
-    )
-    user_prompt = f"Filename: {filename}\n\nManual excerpt:\n{text}"
-    return call_llm_json(client, model, system_prompt, user_prompt, temperature=0.1)
-
-
-def extract_env_info(client: OpenAI, model: str, text: str, filename: str) -> dict:
-    system_prompt = (
-        "Extract runtime environment fields. Return JSON with keys: env__server_os, env__server_soft, env__server_model, "
-        "env__server_config, env__server_id, env__client_os, env__client_soft, env__client_model, env__client_config, "
-        "env__client_id. Use concrete values in Chinese if not explicit, but keep realistic mainstream 2024/2025 choices."
-    )
-    user_prompt = f"Filename: {filename}\n\nManual excerpt:\n{text}"
-    return call_llm_json(client, model, system_prompt, user_prompt, temperature=0.2)
-
-
-def extract_assessment_info(client: OpenAI, model: str, text: str) -> dict:
-    system_prompt = (
-        "Extract fields for a software product assessment Excel form. Return JSON with: "
-        "product__service_object, product__main_functions, product__tech_specs, app__product_type_text, "
-        "env__memory_req, env__hardware_model, env__os, env__language, env__database, env__soft_scale, env__os_version, "
-        "env__hw_dev_platform, env__sw_dev_platform, app__category_assess, assess__workload, assess__product_mode_val, "
-        "assess__support_floppy, assess__support_sound, assess__support_cdrom, assess__support_gpu, assess__support_other, "
-        "assess__is_self_dev, assess__has_docs, assess__has_source. "
-        "product__service_object, product__main_functions, product__tech_specs must be Chinese; do not return empty strings. "
-        "app__product_type_text must be exactly one item from the product type list (no 'Other'). "
-        "env__memory_req must be integer MB like 512MB. env__language must be programming language names (no Chinese). "
-        "env__soft_scale must be one of: 大, 中, 小. assess__workload must be formatted like 'X人*Y月', X <= 6. "
-        "assess__product_mode_val must be 'pure' or 'embedded'. "
-        "Defaults: support_* false, assess__is_self_dev/assess__has_docs/assess__has_source true. "
-        f"Product types: {PRODUCT_TYPES_STR} Category IDs: {CATEGORY_IDS_STR}"
-    )
-    user_prompt = f"Manual excerpt:\n{text}"
-    return call_llm_json(client, model, system_prompt, user_prompt, temperature=0.2)
-
-
-def extract_copyright_ai(client: OpenAI, model: str, text: str) -> dict:
-    system_prompt = (
-        "Generate technical description fields for a software copyright application. "
-        "Return JSON only with keys: tech__hardware_dev, tech__hardware_run, tech__os_dev, tech__os_run, "
-        "tech__dev_tools, tech__run_support, tech__language, tech__dev_purpose, tech__main_functions, tech__features, "
-        "tech__source_lines. Use concise Chinese text."
-    )
-    user_prompt = f"Manual excerpt:\n{text}"
-    data = call_llm_json(client, model, system_prompt, user_prompt, temperature=0.2)
-    return {key: value for key, value in data.items() if key in AI_TECH_KEYS}
 
 
 def load_yaml_config(path: Path) -> dict:
@@ -1302,12 +1461,15 @@ def main() -> None:
         data = merge_missing(data, rule_data)
 
         section_map = build_section_map(text)
-        field_data = extract_fields_by_prompt(client, model, section_map, FIELD_PROMPTS, FIELD_SECTION_MAP)
+        section_chunks = build_section_chunks(section_map)
+        full_chunks = split_into_chunks(text)
+
+        func_items = extract_func_items(text, section_chunks, client, model)
+        if func_items:
+            data["product__func_list"] = func_items
+        field_data = extract_fields_by_prompt(client, model, text, section_chunks, full_chunks, FIELD_PROMPTS)
 
         data = merge_missing(data, field_data)
-
-        if field_data.get("product__func_list"):
-            data["product__func_list"] = field_data["product__func_list"]
 
         data = sanitize_data(data)
         data = normalize_assessment_data(data)

@@ -1,6 +1,6 @@
 # DocCollate
 
-DocCollate 是一个本地 CLI 工具，用于将结构化的软件说明书（Markdown）转换为完整的软件测试、评估与软著申请材料。它按章节切块生成字段内容，并输出 DOCX/XLSX 文档。
+DocCollate 是一个本地 CLI 工具，用于将结构化的软件说明书（Markdown）转换为完整的软件测试、评估与软著申请材料。它按章节分块并通过 BM25 检索筛选上下文，再生成字段内容并输出 DOCX/XLSX 文档。
 
 ## 产出内容
 
@@ -63,7 +63,8 @@ python -m doccollate \
 说明：
 
 - 当前仅支持 Markdown 说明书。
-- 每个字段只读取对应章节，避免全量投喂。
+- 字段抽取使用 BM25 检索获取相关上下文。
+- 功能表采用 Coverage Retrieval：先覆盖式收集模块，再用 LLM 规范化描述。
 - `app__name` 与 `app__version` 由命令行输入。
 - 机器型号/配置与 OS 池为内置随机生成，不依赖说明书。
 
