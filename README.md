@@ -1,29 +1,29 @@
 # DocCollate
 
-DocCollate is a local CLI that turns a structured software manual (Markdown) into a full set of software test, assessment, and copyright forms. It uses chapter-scoped prompts so each field is generated from the correct section, then writes DOCX/XLSX outputs.
+DocCollate 是一个本地 CLI 工具，用于将结构化的软件说明书（Markdown）转换为完整的软件测试、评估与软著申请材料。它按章节切块生成字段内容，并输出 DOCX/XLSX 文档。
 
-## What it generates
+## 产出内容
 
-- 产品测试功能表 (.docx)
-- 产品测试登记表 (.docx)
-- 非嵌入式软件环境 (.docx)
-- 产品评估申请 (.xlsx)
-- 计算机软件著作权登记申请表 (.docx)
+- 产品测试功能表（.docx）
+- 产品测试登记表（.docx）
+- 非嵌入式软件环境（.docx）
+- 产品评估申请（.xlsx）
+- 计算机软件著作权登记申请表（.docx）
 
-## Requirements
+## 环境要求
 
 - Python 3.10+
-- A compatible OpenAI API endpoint and key
+- 可用的 OpenAI 兼容接口与 API Key
 
-## Setup
+## 安装与配置
 
-Install dependencies:
+安装依赖：
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Set template paths (absolute paths required):
+配置模板路径（必须使用绝对路径）：
 
 ```bash
 export DOCCOLLATE_TEMPLATE_FUNC=/abs/path/产品测试功能表.docx
@@ -33,25 +33,25 @@ export DOCCOLLATE_TEMPLATE_ASSESS=/abs/path/产品评估申请所需材料.xlsx
 export DOCCOLLATE_TEMPLATE_COPYRIGHT=/abs/path/计算机软件著作权登记申请表.docx
 ```
 
-Set API settings:
+配置 API：
 
 ```bash
 export OPENAI_API_KEY=your_key
-export OPENAI_BASE_URL=your_base_url  # optional
-export OPENAI_MODEL=gpt-4o-mini       # optional
+export OPENAI_BASE_URL=your_base_url  # 可选
+export OPENAI_MODEL=gpt-4o-mini       # 可选
 ```
 
-Company profiles live in `soft_copyright.yaml`.
+公司信息配置保存在 `soft_copyright.yaml`。
 
-## Usage
+## 使用方式
 
-Run interactively:
+交互运行：
 
 ```bash
 python -m doccollate
 ```
 
-Or pass inputs directly:
+或直接传参：
 
 ```bash
 python -m doccollate \
@@ -60,17 +60,17 @@ python -m doccollate \
   --app-version "V1.0"
 ```
 
-Notes:
+说明：
 
-- Only Markdown manuals are supported.
-- The tool reads only the required chapters per field.
-- `app__name` and `app__version` are entered manually.
-- Machine model/config and OS pools are generated without relying on the manual.
+- 当前仅支持 Markdown 说明书。
+- 每个字段只读取对应章节，避免全量投喂。
+- `app__name` 与 `app__version` 由命令行输入。
+- 机器型号/配置与 OS 池为内置随机生成，不依赖说明书。
 
-## Outputs
+## 输出位置
 
-All generated files are saved under the output directory you select at runtime.
+所有生成文件会保存到你运行时选择的输出目录中。
 
-## License
+## 许可证
 
-Internal use.
+内部使用。
