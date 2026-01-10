@@ -1,0 +1,7 @@
+openai
+pdfplumber
+python-docx
+docxtpl
+openpyxl
+pyyaml
+python-dotenv
