@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.WARNING, format="%(asctime)s - %(levelname)s -
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 TARGET_COPYRIGHT = {
-    "copyright": "软件著作权登记申请表",
+    "copyright": "Software copyright application form",
 }
 
 
@@ -24,7 +24,7 @@ def ensure_local_run() -> bool:
 def resolve_template_path(template_config: TemplateConfig, key: str) -> Path | None:
     path = template_config.copyright if key == "copyright" else None
     if not path:
-        print(f"Missing template path for {key} in pyproject.toml")
+        print(f"[Error] Missing template path for {key} in pyproject.toml")
         return None
     return path
 
@@ -41,12 +41,12 @@ def generate_copyright(args: argparse.Namespace, app_config: AppConfig, runtime,
     try:
         form_context = context or collect_form_context(args, app_config)
     except ValueError as exc:
-        print(str(exc))
+        print(f"[Error] {exc}")
         return 2
 
     total = len(form_context.files)
     for idx, file_path in enumerate(form_context.files, start=1):
-        print(f"Processing ({idx}/{total}): {file_path.name}")
+        print(f"[Info] Processing ({idx}/{total}): {file_path.name}")
         text = read_file_content(file_path)
         if not text:
             continue
@@ -68,5 +68,5 @@ def generate_copyright(args: argparse.Namespace, app_config: AppConfig, runtime,
         output_path = form_context.output_dir / build_copyright_filename(software_name, version)
         generate_document(form_context.company_profile, data, template_path, output_path, dates_config=app_config.dates)
 
-    print(f"Done. Outputs are in {form_context.output_dir}")
+    print(f"[Info] Outputs saved to: {form_context.output_dir}")
     return 0

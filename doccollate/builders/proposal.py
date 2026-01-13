@@ -20,6 +20,7 @@ from ..config import AppConfig
 from ..llm.client import LLMRuntime
 from ..core.date_utils import default_assess_dates
 from ..core.form_pipeline import apply_app_metadata, build_form_data
+from ..core.input_flow import prompt_text
 
 
 def add_proposal_args(parser: argparse.ArgumentParser) -> None:
@@ -33,21 +34,48 @@ def add_proposal_args(parser: argparse.ArgumentParser) -> None:
 
 
 def _exit(code: int, message: str) -> int:
-    print(message, file=sys.stderr)
+    print(f"[Error] {message}", file=sys.stderr)
     return code
 
 
 def _prompt_cover(runtime: LLMRuntime) -> dict[str, str]:
-    company_name = input("公司名称: ").strip()
-    project_name = input("项目名称: ").strip()
+    company_name = prompt_text("Company name").strip()
+    project_name = prompt_text("Project name").strip()
     if not project_name:
-        project_name = input("项目名称不能为空，请重新输入项目名称: ").strip()
+        project_name = prompt_text("Project name (required)").strip()
     try:
         english_name = translate_to_english(project_name, runtime)
     except Exception:
         english_name = ""
     if not english_name or re.search(r"[\u4e00-\u9fff]", english_name):
-        english_name = input("请输入项目英文名用于文档名称: ").strip()
+        english_name = prompt_text("Project English name (for document title)").strip()
+    document_title = f"{english_name} Project Proposal".strip()
+    return {
+        "company_name": company_name,
+        "project_name": project_name,
+        "project_id": "",
+        "document_title": document_title,
+        "document_version": "V1.0",
+        "drafted_by": "",
+        "draft_date": "",
+        "approved_by": "",
+        "approval_date": "",
+    }
+
+
+def _build_cover_from_inputs(
+    runtime: LLMRuntime,
+    company_name: str,
+    project_name: str,
+) -> dict[str, str] | None:
+    if not company_name or not project_name:
+        return None
+    try:
+        english_name = translate_to_english(project_name, runtime)
+    except Exception:
+        english_name = ""
+    if not english_name or re.search(r"[\u4e00-\u9fff]", english_name):
+        english_name = project_name
     document_title = f"{english_name} Project Proposal".strip()
     return {
         "company_name": company_name,
@@ -63,7 +91,7 @@ def _prompt_cover(runtime: LLMRuntime) -> dict[str, str]:
 
 
 def _prompt_revision_history() -> list[dict[str, str]]:
-    print("修订历史（1 行）")
+    print("[Info] Revision history (1 row)")
     return [
         {
             "version": "V1.0",
@@ -76,7 +104,7 @@ def _prompt_revision_history() -> list[dict[str, str]]:
 
 
 def _prompt_signoff_records() -> list[dict[str, str]]:
-    print("会签记录（4 行）")
+    print("[Info] Sign-off records (4 rows)")
     records: list[dict[str, str]] = []
     for _ in range(4):
         records.append(
@@ -90,7 +118,12 @@ def _prompt_signoff_records() -> list[dict[str, str]]:
     return records
 
 
-def generate_proposal(args: argparse.Namespace, app_config: AppConfig, runtime: LLMRuntime) -> int:
+def generate_proposal(
+    args: argparse.Namespace,
+    app_config: AppConfig,
+    runtime: LLMRuntime,
+    cover_overrides: dict[str, str] | None = None,
+) -> int:
     template_path = app_config.templates.proposal
     if not template_path:
         return _exit(2, "templates.proposal missing in pyproject.toml")
@@ -122,8 +155,15 @@ def generate_proposal(args: argparse.Namespace, app_config: AppConfig, runtime: 
         except json.JSONDecodeError:
             return _exit(2, f"manual file invalid JSON: {args.manual}")
     else:
+        cover = None
+        if cover_overrides:
+            cover = _build_cover_from_inputs(
+                runtime,
+                str(cover_overrides.get("company_name", "")).strip(),
+                str(cover_overrides.get("project_name", "")).strip(),
+            )
         manual_inputs = {
-            "cover": _prompt_cover(runtime),
+            "cover": cover or _prompt_cover(runtime),
             "revision_history": _prompt_revision_history(),
             "signoff_records": _prompt_signoff_records(),
         }
@@ -160,7 +200,7 @@ def generate_proposal(args: argparse.Namespace, app_config: AppConfig, runtime: 
     placeholder_map = build_placeholder_map(manual_inputs, llm_output)
     project_name = placeholder_map.get("{{ project_name }}", "").strip()
     if not project_name:
-        project_name = input("项目名称为空，请输入项目名称用于文件命名: ").strip()
+        project_name = prompt_text("Project name (required for file name)").strip()
         placeholder_map["{{ project_name }}"] = project_name
     out_path = os.path.join(out_dir, f"{project_name}立项建议书.docx")
     tmp_rendered_path = os.path.join(out_dir, "_tmp_rendered.docx")
@@ -193,5 +233,5 @@ def generate_proposal(args: argparse.Namespace, app_config: AppConfig, runtime: 
     except OSError:
         pass
 
-    print(f"Generated file: {out_path}")
+    print(f"[Output] Generated file: {out_path}")
     return 0

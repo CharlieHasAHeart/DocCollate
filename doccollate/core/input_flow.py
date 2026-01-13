@@ -3,18 +3,29 @@ from __future__ import annotations
 from typing import Iterable
 
 
+def print_select(title: str, options: Iterable[str]) -> None:
+    print(f"[Select] {title}:")
+    for idx, label in enumerate(options, start=1):
+        print(f"  {idx}) {label}")
+
+
 def prompt_choice(prompt: str, options: Iterable[str], default: str | None = None) -> str:
-    options_set = set(options)
+    options_list = list(options)
+    options_set = set(options_list)
     while True:
-        value = input(f"{prompt} [{default}]: ").strip() if default else input(f"{prompt}: ").strip()
+        value = input(f"Enter choice [{default}]: ").strip() if default else input("Enter choice: ").strip()
         if not value and default:
             return default
+        if value.isdigit():
+            index = int(value)
+            if 1 <= index <= len(options_list):
+                return options_list[index - 1]
         if value in options_set:
             return value
 
 
 def prompt_text(prompt: str, default: str | None = None) -> str:
-    value = input(f"{prompt} [{default}]: ").strip() if default else input(f"{prompt}: ").strip()
+    value = input(f"[Input] {prompt} [{default}]: ").strip() if default else input(f"[Input] {prompt}: ").strip()
     return value or (default or "")
 
 
@@ -26,23 +37,18 @@ def interactive_form_inputs(
     preset_choice = None
     if presets:
         labels = [item.get("label", f"Preset {idx + 1}") for idx, item in enumerate(presets)]
-        print("Contact Presets:")
-        for idx, label in enumerate(labels, start=1):
-            print(f"{idx}) {label}")
-        selected = prompt_choice("Select contact preset", [str(i) for i in range(1, len(labels) + 1)], default="1")
+        print_select("Contact preset", labels)
+        selected = prompt_choice("Contact preset", [str(i) for i in range(1, len(labels) + 1)], default="1")
         preset_choice = labels[int(selected) - 1]
     elif default_choice:
         preset_choice = default_choice
 
     applicant_type = None
     if prompt_applicant_type:
-        applicant_type = prompt_choice(
-            "Applicant type (holder=personal, agent=proxy)",
-            ["holder", "agent"],
-            default="holder",
-        )
+        print_select("Applicant type", ["holder (personal)", "agent (proxy)"])
+        applicant_type = prompt_choice("Applicant type", ["holder", "agent"], default="holder")
 
-    inputs_raw = prompt_text("Input file(s) or directory (space-separated)")
+    inputs_raw = prompt_text("Input path(s), space-separated")
     output_dir = prompt_text("Output directory (relative to base)", default="")
 
     return {

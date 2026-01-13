@@ -6,6 +6,7 @@ from pathlib import Path
 from ..config import AppConfig
 from .input_flow import (
     interactive_form_inputs,
+    print_select,
     prompt_choice,
     prompt_text,
     resolve_contact_info,
@@ -71,21 +72,16 @@ def collect_form_context(
 
     if presets and not prompted_preset:
         labels = [item.get("label", f"Preset {idx + 1}") for idx, item in enumerate(presets)]
-        print("Contact Presets:")
-        for idx, label in enumerate(labels, start=1):
-            print(f"{idx}) {label}")
+        print_select("Contact preset", labels)
         default_index = "1"
         if default_choice and default_choice in labels:
             default_index = str(labels.index(default_choice) + 1)
-        selected = prompt_choice("Select contact preset", [str(i) for i in range(1, len(labels) + 1)], default=default_index)
+        selected = prompt_choice("Contact preset", [str(i) for i in range(1, len(labels) + 1)], default=default_index)
         args.preset_choice = labels[int(selected) - 1]
 
     if prompt_applicant_type and not args.applicant_type:
-        args.applicant_type = prompt_choice(
-            "Applicant type (holder=personal, agent=proxy)",
-            ["holder", "agent"],
-            default="holder",
-        )
+        print_select("Applicant type", ["holder (personal)", "agent (proxy)"])
+        args.applicant_type = prompt_choice("Applicant type", ["holder", "agent"], default="holder")
 
     output_dir = _resolve_output_dir(args, output_dir_override)
 

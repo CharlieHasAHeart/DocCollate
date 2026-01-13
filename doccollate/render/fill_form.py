@@ -386,14 +386,14 @@ def generate_document(
     dates_config: DatesConfig | None = None,
 ) -> None:
     """
-    根据公司信息与统一字段数据生成软件著作权登记申请表。
+    Generate the software copyright application form from unified data.
     """
     replacements = build_copyright_replacements(company_profile, data, dates_config=dates_config)
 
     try:
         doc = Document(template_path)
     except Exception as exc:
-        logging.error("❌ 错误: 无法打开Word模板文件 '%s': %s", template_path, exc)
+        logging.error("[Error] Unable to open Word template '%s': %s", template_path, exc)
         return
 
     docx_replace_text(doc, replacements)
@@ -401,10 +401,10 @@ def generate_document(
     try:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         doc.save(output_path)
-        print(f"生成文件: {output_path}")
+        print(f"[Output] Generated file: {output_path}")
     except Exception as exc:
-        logging.error("❌ 错误: 保存文件失败 '%s': %s", output_path, exc)
+        logging.error("[Error] Failed to save file '%s': %s", output_path, exc)
 
 
 if __name__ == "__main__":
-    print("This module is intended to be used via the CLI.")
+    print("[Info] This module is intended to be used via the CLI.")

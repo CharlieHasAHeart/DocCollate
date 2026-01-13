@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import sys
 from pathlib import Path
 
 from .config import load_config
 from .builders.copyright import TARGET_COPYRIGHT, generate_copyright
 from .core.form_context import collect_form_context
-from .core.input_flow import prompt_text
+from .core.input_flow import print_select, prompt_choice, prompt_text
 from .llm.client import init_llm
 from .builders.proposal import add_proposal_args, generate_proposal
 from .builders.test_forms import TARGET_TEST_FORMS, generate_test_forms
@@ -17,12 +18,12 @@ TARGETS = ["proposal", *DOCCOLLATE_TARGETS.keys(), "all"]
 
 
 def _prompt_target() -> str:
-    print("Select output:")
-    print("1) proposal (立项建议书)")
-    for idx, key in enumerate(DOCCOLLATE_TARGETS.keys(), start=2):
-        print(f"{idx}) {key} ({DOCCOLLATE_TARGETS[key]})")
-    print(f"{len(DOCCOLLATE_TARGETS) + 2}) all (全部生成)")
-    selection = input("Choice [1]: ").strip() or "1"
+    labels = ["proposal (Project proposal)"]
+    for key in DOCCOLLATE_TARGETS.keys():
+        labels.append(f"{key} ({DOCCOLLATE_TARGETS[key]})")
+    labels.append("all (Generate all)")
+    print_select("Output", labels)
+    selection = prompt_choice("Output", [str(i) for i in range(1, len(labels) + 1)], default="1")
     try:
         index = int(selection)
     except ValueError:
@@ -63,17 +64,18 @@ def _ensure_shared_inputs(args) -> None:
     if not args.out:
         args.out = prompt_text("Output directory", default=str(Path.cwd()))
     if not args.spec:
-        args.spec = prompt_text("Spec file path (--spec)")
+        args.spec = prompt_text("Spec file path")
 
 
 def _ensure_app_metadata(args) -> None:
     if not args.app_name:
-        args.app_name = prompt_text("Software name (manual input)")
+        args.app_name = prompt_text("Software name")
     if not args.app_version:
-        args.app_version = prompt_text("Software version (manual input)")
+        args.app_version = prompt_text("Software version")
 
 
 def main(argv: list[str] | None = None) -> int:
+    logging.getLogger("jieba").setLevel(logging.WARNING)
     parser = _build_parser()
     args = parser.parse_args(argv or sys.argv[1:])
     target = args.target or _prompt_target()
@@ -104,7 +106,6 @@ def main(argv: list[str] | None = None) -> int:
         form_context = collect_form_context(args, app_config, output_dir_override=output_dir)
         return generate_copyright(args, app_config, runtime, context=form_context)
     if target == "all":
-        proposal_status = generate_proposal(args, app_config, runtime)
         try:
             form_context = collect_form_context(
                 args,
@@ -113,12 +114,28 @@ def main(argv: list[str] | None = None) -> int:
                 prompt_applicant_type=True,
             )
         except ValueError as exc:
-            print(str(exc))
-            return proposal_status or 2
+            print(f"[Error] {exc}")
+            return 2
+        company_name = ""
+        if form_context.company_profile:
+            company_name = str(
+                form_context.company_profile.get("label")
+                or form_context.contact_info.get("owner", "")
+            ).strip()
+        cover_overrides = {
+            "company_name": company_name,
+            "project_name": args.app_name or "",
+        }
+        proposal_status = generate_proposal(
+            args,
+            app_config,
+            runtime,
+            cover_overrides=cover_overrides,
+        )
         test_status = generate_test_forms(args, app_config, runtime, context=form_context)
         copy_status = generate_copyright(args, app_config, runtime, context=form_context)
         return max(proposal_status, test_status, copy_status)
-    print(f"Unknown target: {target}")
+    print(f"[Error] Unknown target: {target}")
     return 2
 
 
