@@ -1,26 +1,36 @@
 # Python
 __pycache__/
 *.py[cod]
-*.pyd
 *.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Build artifacts
+build/
+dist/
 *.egg-info/
+.eggs/
+
+# Tool caches
 .pytest_cache/
 .mypy_cache/
-.venv/
-.venv*/
+.ruff_cache/
 
-# Env/config
-.env
-*.env
-
-# Outputs
-output/
-outputs/
+# Logs and temp
 *.log
+*.tmp
+_tmp_rendered.docx
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 
-# Local config
-.doccollate/
+# Env secrets
+.env
+
+# Debug output
+debug/

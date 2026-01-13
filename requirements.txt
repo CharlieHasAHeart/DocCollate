@@ -5,3 +5,6 @@ openpyxl
 pyyaml
 python-dotenv
 rank-bm25
+jieba
+pdfplumber
+tomli

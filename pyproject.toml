@@ -1,24 +1,35 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
 
 [project]
 name = "doccollate"
 version = "0.1.0"
-description = "Generate software test and copyright forms from manuals"
+description = "DocCollate document generator"
 requires-python = ">=3.10"
 dependencies = [
-  "openai",
-  "pdfplumber",
-  "python-docx",
-  "docxtpl",
-  "openpyxl",
-  "pyyaml",
-  "python-dotenv",
+    "docxtpl",
+    "jieba",
+    "openai",
+    "openpyxl",
+    "pdfplumber",
+    "python-docx",
+    "python-dotenv",
+    "pyyaml",
+    "rank-bm25",
+    "tomli; python_version < '3.11'",
 ]
 
 [project.scripts]
 doccollate = "doccollate.cli:main"
 
-[tool.setuptools]
-packages = ["doccollate"]
+[tool.doccollate.proposal]
+topk_default = 8
+
+[tool.doccollate.doccollate]
+contact_info = "~/.doccollate/soft_copyright.yaml"
+preset_choice = ""
+
+[tool.doccollate.dates]
+assess_completion_days_ago = 14
+assess_dev_months_ago = 5

@@ -5,6 +5,8 @@ from pathlib import Path
 
 from docx import Document
 
+from ..core.date_utils import default_assess_dates
+from ..config import DatesConfig
 # --- 配置日志，方便追踪脚本运行情况 ---
 logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -105,7 +107,11 @@ def _get_first_holder(profile: dict) -> dict:
     return {}
 
 
-def build_copyright_replacements(company_profile: dict, data: dict) -> dict:
+def build_copyright_replacements(
+    company_profile: dict,
+    data: dict,
+    dates_config: DatesConfig | None = None,
+) -> dict:
     replacements: dict[str, str] = {}
     def set_value(upper_key: str, lower_key: str, value: object) -> None:
         value_str = _safe_str(value)
@@ -124,9 +130,16 @@ def build_copyright_replacements(company_profile: dict, data: dict) -> dict:
     set_value("{{APP_CLASSIFICATION_CODE}}", "{{app__classification_code}}", app_classification_code)
     set_value("{{TECH_SOURCE_LINES}}", "{{tech__source_lines}}", tech_source_lines)
 
+    completion_days_ago = dates_config.assess_completion_days_ago if dates_config else 14
+    dev_months_ago = dates_config.assess_dev_months_ago if dates_config else 5
     completion_date = _parse_date(data.get("copyright__completion_date"))
     if completion_date is None:
-        completion_date = _to_workday(date.today() - timedelta(days=14))
+        completion_date = _parse_date(
+            default_assess_dates(
+                completion_days_ago=completion_days_ago,
+                dev_months_ago=dev_months_ago,
+            )[0]
+        )
     set_value(
         "{{APP_COMPLETION_YEAR}}",
         "{{copyright__completion_year}}",
@@ -365,11 +378,17 @@ def build_copyright_replacements(company_profile: dict, data: dict) -> dict:
     return replacements
 
 
-def generate_document(company_profile: dict, data: dict, template_path: Path, output_path: Path) -> None:
+def generate_document(
+    company_profile: dict,
+    data: dict,
+    template_path: Path,
+    output_path: Path,
+    dates_config: DatesConfig | None = None,
+) -> None:
     """
     根据公司信息与统一字段数据生成软件著作权登记申请表。
     """
-    replacements = build_copyright_replacements(company_profile, data)
+    replacements = build_copyright_replacements(company_profile, data, dates_config=dates_config)
 
     try:
         doc = Document(template_path)

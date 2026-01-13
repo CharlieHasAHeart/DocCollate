@@ -1,77 +1,79 @@
 # DocCollate
 
-DocCollate 是一个本地 CLI 工具，用于将结构化的软件说明书（Markdown）转换为完整的软件测试、评估与软著申请材料。它按章节分块并通过 BM25 检索筛选上下文，再生成字段内容并输出 DOCX/XLSX 文档。
+DocCollate is a CLI tool that generates three groups of documents from a software spec:
 
-## 产出内容
+- Proposal: 立项建议书
+- Test forms: 产品测试功能表 / 产品测试登记表 / 非嵌入式软件环境 / 产品评估申请表
+- Copyright: 计算机软件著作权登记申请表
 
-- 产品测试功能表（.docx）
-- 产品测试登记表（.docx）
-- 非嵌入式软件环境（.docx）
-- 产品评估申请（.xlsx）
-- 计算机软件著作权登记申请表（.docx）
+All outputs share the same spec input and output directory. You choose which group to generate.
 
-## 环境要求
-
-- Python 3.10+
-- 可用的 OpenAI 兼容接口与 API Key
-
-## 安装与配置
-
-安装依赖：
+## Install
 
 ```bash
-pip install -r requirements.txt
+uv pip install -e .
 ```
 
-配置模板路径（必须使用绝对路径）：
+## Run
 
 ```bash
-export DOCCOLLATE_TEMPLATE_FUNC=/abs/path/产品测试功能表.docx
-export DOCCOLLATE_TEMPLATE_REG=/abs/path/产品测试登记表.docx
-export DOCCOLLATE_TEMPLATE_ENV=/abs/path/非嵌入式软件环境.docx
-export DOCCOLLATE_TEMPLATE_ASSESS=/abs/path/产品评估申请所需材料.xlsx
-export DOCCOLLATE_TEMPLATE_COPYRIGHT=/abs/path/计算机软件著作权登记申请表.docx
+doccollate
 ```
 
-配置 API：
+The CLI will prompt for:
 
-```bash
-export OPENAI_API_KEY=your_key
-export OPENAI_BASE_URL=your_base_url  # 可选
-export OPENAI_MODEL=gpt-4o-mini       # 可选
+- Output directory
+- Spec file path (`.md`, `.docx`, `.pdf`)
+- Software name + version (manual input)
+- Contact preset (from `soft_copyright.yaml`)
+- Applicant type (only for copyright or all)
+
+## Templates
+
+Templates live in `assets/` and are configured via `.env` or `pyproject.toml`.
+Current template file names:
+
+- `assets/proposal_template.docx`
+- `assets/test_function_form.docx`
+- `assets/test_registration_form.docx`
+- `assets/assessment_application_materials.xlsx`
+- `assets/non_embedded_environment.docx`
+- `assets/software_copyright_application_form.docx`
+
+## Configuration
+
+### Environment (.env)
+
+```dotenv
+DOCCOLLATE_LLM_API_KEY=...
+DOCCOLLATE_LLM_BASE_URL=...
+DOCCOLLATE_LLM_MODEL=...
+
+DOCCOLLATE_TEMPLATE_PROPOSAL=...
+DOCCOLLATE_TEMPLATE_FUNC=...
+DOCCOLLATE_TEMPLATE_REG=...
+DOCCOLLATE_TEMPLATE_ASSESS=...
+DOCCOLLATE_TEMPLATE_ENV=...
+DOCCOLLATE_TEMPLATE_COPYRIGHT=...
+
+DOCCOLLATE_CONTACT_INFO=.../soft_copyright.yaml
+DOCCOLLATE_PANDOC_SAVE_MD=1
 ```
 
-公司信息配置保存在 `soft_copyright.yaml`。
+### pyproject.toml
 
-## 使用方式
+`tool.doccollate.*` contains default values for templates, dates, and proposal settings.
+Values can be overridden by `.env`.
 
-交互运行：
+## Spec parsing
 
-```bash
-python -m doccollate
-```
+- `.md`: parsed directly
+- `.docx`: converted via pandoc to markdown (if available), otherwise parsed via python-docx
+- `.pdf`: parsed via pdfplumber
 
-或直接传参：
+If `DOCCOLLATE_PANDOC_SAVE_MD=1`, the converted markdown is saved next to the input file.
 
-```bash
-python -m doccollate \
-  --input /path/to/manual.md \
-  --app-name "软件名称" \
-  --app-version "V1.0"
-```
+## Notes
 
-说明：
-
-- 当前仅支持 Markdown 说明书。
-- 字段抽取使用 BM25 检索获取相关上下文。
-- 功能表采用 Coverage Retrieval：先覆盖式收集模块，再用 LLM 规范化描述。
-- `app__name` 与 `app__version` 由命令行输入。
-- 机器型号/配置与 OS 池为内置随机生成，不依赖说明书。
-
-## 输出位置
-
-所有生成文件会保存到你运行时选择的输出目录中。
-
-## 许可证
-
-内部使用。
+- The tool generates all data fields (even if a target does not use them).
+- For product type in the assessment Excel, the value is normalized to one of the allowed options.
