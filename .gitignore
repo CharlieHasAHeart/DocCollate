@@ -34,3 +34,6 @@ Thumbs.db
 
 # Debug output
 debug/
+
+# Local presets
+soft_copyright.yaml

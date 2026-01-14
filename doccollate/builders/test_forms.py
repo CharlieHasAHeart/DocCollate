@@ -6,6 +6,7 @@ from pathlib import Path
 from ..config import AppConfig, TemplateConfig
 from ..core.form_context import FormContext, collect_form_context
 from ..core.form_pipeline import apply_app_metadata, build_form_data
+from ..core.field_requirements import required_fields_for_target
 from ..io.io_utils import build_filename, read_file_content
 from ..render.renderers import (
     fill_assessment_excel,
@@ -80,7 +81,8 @@ def generate_test_forms(args: argparse.Namespace, app_config: AppConfig, runtime
 
         base_name = file_path.stem
 
-        data = build_form_data(text, runtime, dates_config=app_config.dates)
+        required_fields = required_fields_for_target("test_forms")
+        data = build_form_data(text, runtime, dates_config=app_config.dates, required_fields=required_fields)
         apply_app_metadata(data, form_context.applicant_type, form_context.app_name, form_context.app_version)
 
         software_name = data.get("app__name") or base_name

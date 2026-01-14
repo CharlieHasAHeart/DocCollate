@@ -6,6 +6,7 @@ import os
 import re
 import sys
 from typing import Any
+from pathlib import Path
 
 from ..proposal.chunking import chunk_text
 from ..render.docx_fill import fill_docx
@@ -20,7 +21,10 @@ from ..config import AppConfig
 from ..llm.client import LLMRuntime
 from ..core.date_utils import default_assess_dates
 from ..core.form_pipeline import apply_app_metadata, build_form_data
-from ..core.input_flow import prompt_text
+from ..core.field_requirements import required_fields_for_target
+from ..core.form_context import DEFAULT_CONFIG_FILE
+from ..core.input_flow import prompt_choice, print_select, prompt_text, select_preset
+from ..io.io_utils import load_yaml_config
 
 
 def add_proposal_args(parser: argparse.ArgumentParser) -> None:
@@ -38,8 +42,10 @@ def _exit(code: int, message: str) -> int:
     return code
 
 
-def _prompt_cover(runtime: LLMRuntime) -> dict[str, str]:
-    company_name = prompt_text("Company name").strip()
+def _prompt_cover(runtime: LLMRuntime, company_name_default: str = "") -> dict[str, str]:
+    company_name = company_name_default.strip()
+    if not company_name:
+        company_name = prompt_text("Company name").strip()
     project_name = prompt_text("Project name").strip()
     if not project_name:
         project_name = prompt_text("Project name (required)").strip()
@@ -88,6 +94,31 @@ def _build_cover_from_inputs(
         "approved_by": "",
         "approval_date": "",
     }
+
+
+def _resolve_company_name(args: argparse.Namespace, app_config: AppConfig) -> str:
+    config_path = Path(args.contact_info) if args.contact_info else (app_config.doccollate.contact_info or DEFAULT_CONFIG_FILE)
+    config = load_yaml_config(config_path)
+    if not isinstance(config, dict):
+        return ""
+    presets = config.get("presets", [])
+    default_choice = (
+        args.preset_choice
+        or app_config.doccollate.preset_choice
+        or config.get("preset_choice")
+    )
+    if presets:
+        labels = [item.get("label", f"Preset {idx + 1}") for idx, item in enumerate(presets)]
+        print_select("Contact preset", labels)
+        default_index = "1"
+        if default_choice and default_choice in labels:
+            default_index = str(labels.index(default_choice) + 1)
+        selected = prompt_choice("Contact preset", [str(i) for i in range(1, len(labels) + 1)], default=default_index)
+        args.preset_choice = labels[int(selected) - 1]
+    preset = select_preset(config, args.preset_choice or default_choice)
+    if preset:
+        return str(preset.get("label") or preset.get("contact_info", {}).get("owner", "")).strip()
+    return str(config.get("contact_info", {}).get("owner", "")).strip()
 
 
 def _prompt_revision_history() -> list[dict[str, str]]:
@@ -143,7 +174,8 @@ def generate_proposal(
     except Exception as exc:
         return _exit(2, f"failed to read spec: {exc}")
 
-    data = build_form_data(spec_text, runtime, dates_config=app_config.dates)
+    required_fields = required_fields_for_target("proposal")
+    data = build_form_data(spec_text, runtime, dates_config=app_config.dates, required_fields=required_fields)
     apply_app_metadata(data, args.applicant_type, args.app_name, args.app_version)
 
     manual_inputs: dict[str, Any]
@@ -155,6 +187,7 @@ def generate_proposal(
         except json.JSONDecodeError:
             return _exit(2, f"manual file invalid JSON: {args.manual}")
     else:
+        company_name = _resolve_company_name(args, app_config)
         cover = None
         if cover_overrides:
             cover = _build_cover_from_inputs(
@@ -163,7 +196,7 @@ def generate_proposal(
                 str(cover_overrides.get("project_name", "")).strip(),
             )
         manual_inputs = {
-            "cover": cover or _prompt_cover(runtime),
+            "cover": cover or _prompt_cover(runtime, company_name_default=company_name),
             "revision_history": _prompt_revision_history(),
             "signoff_records": _prompt_signoff_records(),
         }

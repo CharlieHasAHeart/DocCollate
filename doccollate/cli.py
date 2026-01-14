@@ -75,12 +75,18 @@ def _ensure_app_metadata(args) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    logging.getLogger("jieba").setLevel(logging.WARNING)
+    logging.basicConfig(level=logging.WARNING)
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.WARNING)
+    jieba_logger = logging.getLogger("jieba")
+    jieba_logger.setLevel(logging.WARNING)
+    jieba_logger.propagate = False
     parser = _build_parser()
     args = parser.parse_args(argv or sys.argv[1:])
     target = args.target or _prompt_target()
     _ensure_shared_inputs(args)
-    _ensure_app_metadata(args)
+    if target in {"test_forms", "copyright", "all"}:
+        _ensure_app_metadata(args)
 
     app_config = load_config(args.config)
     runtime = init_llm(

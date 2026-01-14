@@ -127,9 +127,16 @@ def normalize_category_id(value: str) -> str:
     return value
 
 
-def normalize_assessment_data(data: dict, dates_config: DatesConfig | None = None) -> dict:
+def normalize_assessment_data(
+    data: dict,
+    dates_config: DatesConfig | None = None,
+    required_fields: set[str] | None = None,
+) -> dict:
     if not data:
         return data
+    def is_required(field: str) -> bool:
+        return required_fields is None or field in required_fields
+
     defaults = {
         "assess__support_floppy": False,
         "assess__support_sound": False,
@@ -141,48 +148,59 @@ def normalize_assessment_data(data: dict, dates_config: DatesConfig | None = Non
         "assess__has_source": True,
     }
     for key, value in defaults.items():
+        if not is_required(key):
+            continue
         if key not in data:
             data[key] = value
         elif isinstance(data[key], str):
             data[key] = data[key].strip().lower() in {"true", "yes", "1", "y", "是"}
 
-    workload = str(data.get("assess__workload", "")).strip()
-    if workload:
-        numbers = re.findall(r"\d+", workload)
-        people = int(numbers[0]) if numbers else 3
-        months = int(numbers[1]) if len(numbers) > 1 else 3
-        people = max(1, min(people, 6))
-        months = max(1, months)
-        data["assess__workload"] = f"{people}人*{months}月"
-    else:
-        data["assess__workload"] = "3人*3月"
+    if is_required("assess__workload"):
+        workload = str(data.get("assess__workload", "")).strip()
+        if workload:
+            numbers = re.findall(r"\d+", workload)
+            people = int(numbers[0]) if numbers else 3
+            months = int(numbers[1]) if len(numbers) > 1 else 3
+            people = max(1, min(people, 6))
+            months = max(1, months)
+            data["assess__workload"] = f"{people}人*{months}月"
+        else:
+            data["assess__workload"] = "3人*3月"
 
-    memory = str(data.get("env__memory_req", "")).strip()
-    if memory:
-        digits = "".join(ch for ch in memory if ch.isdigit())
-        if digits:
-            data["env__memory_req"] = f"{digits}MB"
-    app_type = str(data.get("app__product_type_text", "") or data.get("app__product_type", "")).strip()
-    data["app__product_type_text"] = normalize_product_type(app_type)
+    if is_required("env__memory_req"):
+        memory = str(data.get("env__memory_req", "")).strip()
+        if memory:
+            digits = "".join(ch for ch in memory if ch.isdigit())
+            if digits:
+                data["env__memory_req"] = f"{digits}MB"
 
-    category_id = str(data.get("app__category_assess", "")).strip()
-    if category_id:
-        data["app__category_assess"] = normalize_category_id(category_id)
+    if is_required("app__product_type_text"):
+        app_type = str(data.get("app__product_type_text", "") or data.get("app__product_type", "")).strip()
+        data["app__product_type_text"] = normalize_product_type(app_type)
 
-    if data.get("env__soft_scale") not in {"大", "中", "小"}:
-        data["env__soft_scale"] = "中"
+    if is_required("app__category_assess"):
+        category_id = str(data.get("app__category_assess", "")).strip()
+        if category_id:
+            data["app__category_assess"] = normalize_category_id(category_id)
 
-    if not str(data.get("env__database", "")).strip():
-        data["env__database"] = "PostgreSQL 13"
-    if not str(data.get("env__os_version", "")).strip():
-        data["env__os_version"] = "Ubuntu 22.04 LTS"
+    if is_required("env__soft_scale"):
+        if data.get("env__soft_scale") not in {"大", "中", "小"}:
+            data["env__soft_scale"] = "中"
 
-    if not data.get("assess__product_mode_val"):
-        data["assess__product_mode_val"] = "pure"
+    if is_required("env__database"):
+        if not str(data.get("env__database", "")).strip():
+            data["env__database"] = "PostgreSQL 13"
+    if is_required("env__os_version"):
+        if not str(data.get("env__os_version", "")).strip():
+            data["env__os_version"] = "Ubuntu 22.04 LTS"
+
+    if is_required("assess__product_mode_val"):
+        if not data.get("assess__product_mode_val"):
+            data["assess__product_mode_val"] = "pure"
     mode_value = str(data.get("assess__product_mode_val", "pure")).lower()
-    if "assess__is_pure" not in data:
+    if is_required("assess__is_pure") and "assess__is_pure" not in data:
         data["assess__is_pure"] = mode_value != "embedded"
-    if "assess__is_embedded" not in data:
+    if is_required("assess__is_embedded") and "assess__is_embedded" not in data:
         data["assess__is_embedded"] = mode_value == "embedded"
 
     completion_days_ago = dates_config.assess_completion_days_ago if dates_config else 14
@@ -191,39 +209,48 @@ def normalize_assessment_data(data: dict, dates_config: DatesConfig | None = Non
         completion_days_ago=completion_days_ago,
         dev_months_ago=dev_months_ago,
     )
-    data["copyright__completion_date"] = completion_date
-    data["assess__completion_date"] = completion_date
-    data["assess__dev_date"] = dev_date
+    if is_required("copyright__completion_date"):
+        data["copyright__completion_date"] = completion_date
+    if is_required("assess__completion_date"):
+        data["assess__completion_date"] = completion_date
+    if is_required("assess__dev_date"):
+        data["assess__dev_date"] = dev_date
 
     server_choice, client_choice = pick_random_models()
-    if not data.get("env__server_model"):
+    if is_required("env__server_model") and not data.get("env__server_model"):
         data["env__server_model"] = server_choice["model"]
-    if not data.get("env__server_config"):
+    if is_required("env__server_config") and not data.get("env__server_config"):
         data["env__server_config"] = server_choice["config"]
-    if not data.get("env__client_model"):
+    if is_required("env__client_model") and not data.get("env__client_model"):
         data["env__client_model"] = client_choice["model"]
-    if not data.get("env__client_config"):
+    if is_required("env__client_config") and not data.get("env__client_config"):
         data["env__client_config"] = client_choice["config"]
 
     server_os, client_os = pick_random_os()
-    if not data.get("env__server_os"):
+    if is_required("env__server_os") and not data.get("env__server_os"):
         data["env__server_os"] = server_os
-    if not data.get("env__client_os"):
+    if is_required("env__client_os") and not data.get("env__client_os"):
         data["env__client_os"] = client_os
 
     return data
 
 
-def derive_fields(data: dict) -> dict:
+def derive_fields(data: dict, required_fields: set[str] | None = None) -> dict:
     if not data:
         return data
-    data["app__classification_code"] = ""
-    if not data.get("tech__source_lines"):
+    def is_required(field: str) -> bool:
+        return required_fields is None or field in required_fields
+
+    if is_required("app__classification_code"):
+        data["app__classification_code"] = ""
+    if is_required("tech__source_lines") and not data.get("tech__source_lines"):
         data["tech__source_lines"] = "15000"
-    data["app__short_name"] = "无"
+    if is_required("app__short_name"):
+        data["app__short_name"] = "无"
 
     func_list = data.get("product__func_list", [])
-    if isinstance(func_list, list) and func_list:
+    need_func_list = is_required("product__func_list") or is_required("product__main_functions") or is_required("tech__main_functions")
+    if need_func_list and isinstance(func_list, list) and func_list:
         for item in func_list:
             if not isinstance(item, dict):
                 continue
@@ -240,19 +267,20 @@ def derive_fields(data: dict) -> dict:
                 item["desc"] = desc
                 item["功能描述"] = desc
 
-    if not data.get("product__main_functions") and isinstance(func_list, list) and func_list:
-        names = []
-        for item in func_list:
-            if isinstance(item, dict):
-                name = item.get("一级功能") or item.get("name")
-                if name:
-                    names.append(name)
-        if names:
-            data["product__main_functions"] = "、".join(names[:5]) + "等功能"
+    if is_required("product__main_functions"):
+        if not data.get("product__main_functions") and isinstance(func_list, list) and func_list:
+            names = []
+            for item in func_list:
+                if isinstance(item, dict):
+                    name = item.get("一级功能") or item.get("name")
+                    if name:
+                        names.append(name)
+            if names:
+                data["product__main_functions"] = "、".join(names[:5]) + "等功能"
 
     server_os = data.get("env__server_os", "")
     client_os = data.get("env__client_os", "")
-    if server_os or client_os:
+    if is_required("tech__os_run") and (server_os or client_os):
         if server_os and client_os:
             data["tech__os_run"] = f"服务器端：{server_os}；客户端：{client_os}"
         else:
@@ -260,18 +288,18 @@ def derive_fields(data: dict) -> dict:
 
     server_soft = data.get("env__server_soft", "")
     client_soft = data.get("env__client_soft", "")
-    if server_soft or client_soft:
+    if is_required("tech__run_support") and (server_soft or client_soft):
         if server_soft and client_soft:
             data["tech__run_support"] = f"服务器端：{server_soft}；客户端：{client_soft}"
         else:
             data["tech__run_support"] = server_soft or client_soft
 
-    if not data.get("tech__hardware_dev"):
+    if is_required("tech__hardware_dev") and not data.get("tech__hardware_dev"):
         hw_dev = data.get("env__hw_dev_platform", "")
         if hw_dev:
             data["tech__hardware_dev"] = f"开发硬件环境：{hw_dev}"
 
-    if not data.get("tech__hardware_run"):
+    if is_required("tech__hardware_run") and not data.get("tech__hardware_run"):
         server_hw = data.get("env__server_config", "")
         client_hw = data.get("env__client_config", "")
         if server_hw or client_hw:
@@ -280,46 +308,46 @@ def derive_fields(data: dict) -> dict:
             else:
                 data["tech__hardware_run"] = server_hw or client_hw
 
-    if not data.get("tech__os_dev"):
+    if is_required("tech__os_dev") and not data.get("tech__os_dev"):
         data["tech__os_dev"] = data.get("env__os_version", "") or data.get("env__os", "") or server_os or client_os
 
-    if not data.get("tech__dev_tools"):
+    if is_required("tech__dev_tools") and not data.get("tech__dev_tools"):
         dev_tools = data.get("env__sw_dev_platform", "")
         if dev_tools:
             data["tech__dev_tools"] = f"开发工具与平台：{dev_tools}"
 
-    if not data.get("tech__language"):
+    if is_required("tech__language") and not data.get("tech__language"):
         data["tech__language"] = data.get("env__language", "")
 
-    if not data.get("tech__dev_purpose"):
+    if is_required("tech__dev_purpose") and not data.get("tech__dev_purpose"):
         service_object = data.get("product__service_object", "")
         if service_object:
             data["tech__dev_purpose"] = f"开发目的在于服务{service_object}，解决其业务需求。"
 
-    if not data.get("tech__main_functions"):
+    if is_required("tech__main_functions") and not data.get("tech__main_functions"):
         main_functions = data.get("product__main_functions", "")
         if main_functions:
             data["tech__main_functions"] = f"系统主要功能包括：{main_functions}"
 
-    if not data.get("tech__features"):
+    if is_required("tech__features") and not data.get("tech__features"):
         tech_specs = data.get("product__tech_specs", "")
         if tech_specs:
             specs_text = tech_specs.replace("；", "，") if isinstance(tech_specs, str) else tech_specs
             data["tech__features"] = f"技术特点体现在：{specs_text}"
 
-    if data.get("env__language") and not data.get("env__dev_lang"):
+    if is_required("env__dev_lang") and data.get("env__language") and not data.get("env__dev_lang"):
         data["env__dev_lang"] = data.get("env__language")
 
-    if not data.get("env__os"):
+    if is_required("env__os") and not data.get("env__os"):
         data["env__os"] = "Windows, Linux, macOS"
 
-    if not data.get("env__memory_req"):
+    if is_required("env__memory_req") and not data.get("env__memory_req"):
         data["env__memory_req"] = "2048MB"
 
-    if not data.get("env__dev_platform") and data.get("env__sw_dev_platform"):
+    if is_required("env__dev_platform") and not data.get("env__dev_platform") and data.get("env__sw_dev_platform"):
         data["env__dev_platform"] = data.get("env__sw_dev_platform")
 
-    if data.get("env__os") and not data.get("env__run_platform"):
+    if is_required("env__run_platform") and data.get("env__os") and not data.get("env__run_platform"):
         data["env__run_platform"] = data.get("env__os")
 
     return data

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import math
 from dataclasses import dataclass
 from typing import Iterable
@@ -148,7 +149,7 @@ def filter_chunks(chunks: list[Chunk], keywords: list[str]) -> list[Chunk]:
 def tokenize(text: str) -> list[str]:
     try:
         import jieba
-
+        jieba.setLogLevel(logging.WARNING)
         tokens = [tok.strip() for tok in jieba.lcut(text) if tok.strip()]
         return tokens
     except Exception:
