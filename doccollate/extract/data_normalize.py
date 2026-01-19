@@ -16,7 +16,7 @@ from ..core.constants import (
     SERVER_CONFIG_POOL,
     SERVER_SOFT_POOL,
 )
-from ..core.date_utils import default_assess_dates
+from ..core.date_utils import normalize_date_str
 from ..config import DatesConfig
 
 
@@ -233,18 +233,12 @@ def normalize_assessment_data(
     if is_required("assess__is_embedded") and "assess__is_embedded" not in data:
         data["assess__is_embedded"] = mode_value == "embedded"
 
-    completion_days_ago = dates_config.assess_completion_days_ago if dates_config else 14
-    dev_months_ago = dates_config.assess_dev_months_ago if dates_config else 5
-    completion_date, dev_date = default_assess_dates(
-        completion_days_ago=completion_days_ago,
-        dev_months_ago=dev_months_ago,
-    )
-    if is_required("copyright__completion_date"):
-        data["copyright__completion_date"] = completion_date
-    if is_required("assess__completion_date"):
-        data["assess__completion_date"] = completion_date
-    if is_required("assess__dev_date"):
-        data["assess__dev_date"] = dev_date
+    if is_required("copyright__completion_date") and data.get("copyright__completion_date"):
+        data["copyright__completion_date"] = normalize_date_str(str(data.get("copyright__completion_date", "")))
+    if is_required("assess__completion_date") and data.get("assess__completion_date"):
+        data["assess__completion_date"] = normalize_date_str(str(data.get("assess__completion_date", "")))
+    if is_required("assess__dev_date") and data.get("assess__dev_date"):
+        data["assess__dev_date"] = normalize_date_str(str(data.get("assess__dev_date", "")))
 
     server_choice, client_choice = pick_random_models()
     if is_required("env__server_model") and not data.get("env__server_model"):

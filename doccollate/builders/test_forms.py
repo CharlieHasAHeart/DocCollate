@@ -85,6 +85,8 @@ def generate_test_forms(args: argparse.Namespace, app_config: AppConfig, runtime
         required_fields = required_fields_for_target("test_forms")
         data = build_form_data(text, runtime, dates_config=app_config.dates, required_fields=required_fields)
         apply_app_metadata(data, form_context.applicant_type, form_context.app_name, form_context.app_version)
+        data["assess__dev_date"] = form_context.dev_date
+        data["assess__completion_date"] = form_context.completion_date
 
         software_name = data.get("app__name") or base_name
         version = data.get("app__version") or "未标注版本"

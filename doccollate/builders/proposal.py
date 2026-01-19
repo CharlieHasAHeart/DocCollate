@@ -19,11 +19,11 @@ from ..proposal.utils import ensure_dir, read_json
 from ..proposal.validate import auto_fix, validate_schema
 from ..config import AppConfig
 from ..llm.client import LLMRuntime
-from ..core.date_utils import default_assess_dates
 from ..core.form_pipeline import apply_app_metadata, build_form_data
 from ..core.field_requirements import required_fields_for_target
 from ..core.form_context import DEFAULT_CONFIG_FILE
-from ..core.input_flow import prompt_choice, print_select, prompt_text, select_preset
+from ..core.input_flow import prompt_choice, print_select, prompt_text, select_preset, prompt_date
+from ..core.date_utils import parse_date
 from ..io.io_utils import load_yaml_config
 
 
@@ -149,6 +149,17 @@ def _prompt_signoff_records() -> list[dict[str, str]]:
     return records
 
 
+def _prompt_schedule_dates() -> tuple[str, str]:
+    while True:
+        dev_date = prompt_date("Development date")
+        completion_date = prompt_date("Completion date")
+        dev = parse_date(dev_date)
+        completion = parse_date(completion_date)
+        if dev and completion and completion >= dev:
+            return dev_date, completion_date
+        print("[Error] Completion date must be the same as or after development date.")
+
+
 def generate_proposal(
     args: argparse.Namespace,
     app_config: AppConfig,
@@ -201,10 +212,7 @@ def generate_proposal(
             "signoff_records": _prompt_signoff_records(),
         }
 
-    completion_date, dev_date = default_assess_dates(
-        completion_days_ago=app_config.dates.assess_completion_days_ago,
-        dev_months_ago=app_config.dates.assess_dev_months_ago,
-    )
+    dev_date, completion_date = _prompt_schedule_dates()
     manual_inputs["schedule"] = {
         "start_date": dev_date,
         "end_date": completion_date,

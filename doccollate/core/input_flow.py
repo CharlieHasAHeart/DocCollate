@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Iterable
 
+from .date_utils import format_date, parse_date
+
 
 def print_select(title: str, options: Iterable[str]) -> None:
     print(f"[Select] {title}:")
@@ -27,6 +29,14 @@ def prompt_choice(prompt: str, options: Iterable[str], default: str | None = Non
 def prompt_text(prompt: str, default: str | None = None) -> str:
     value = input(f"[Input] {prompt} [{default}]: ").strip() if default else input(f"[Input] {prompt}: ").strip()
     return value or (default or "")
+
+
+def prompt_date(prompt: str) -> str:
+    while True:
+        value = prompt_text(f"{prompt} (YYYY/MM/DD)")
+        parsed = parse_date(value)
+        if parsed:
+            return format_date(parsed)
 
 
 def interactive_form_inputs(

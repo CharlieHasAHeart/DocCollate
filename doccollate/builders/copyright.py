@@ -57,6 +57,7 @@ def generate_copyright(args: argparse.Namespace, app_config: AppConfig, runtime,
         required_fields = required_fields_for_target("copyright")
         data = build_form_data(text, runtime, dates_config=app_config.dates, required_fields=required_fields)
         apply_app_metadata(data, form_context.applicant_type, form_context.app_name, form_context.app_version)
+        data["copyright__completion_date"] = form_context.completion_date
 
         software_name = data.get("app__name") or base_name
         version = data.get("app__version") or "未标注版本"
@@ -68,7 +69,7 @@ def generate_copyright(args: argparse.Namespace, app_config: AppConfig, runtime,
             data["app__short_name"] = software_name
 
         output_path = form_context.output_dir / build_copyright_filename(software_name, version)
-        generate_document(form_context.company_profile, data, template_path, output_path, dates_config=app_config.dates)
+        generate_document(form_context.company_profile, data, template_path, output_path)
 
     print(f"[Info] Outputs saved to: {form_context.output_dir}")
     return 0

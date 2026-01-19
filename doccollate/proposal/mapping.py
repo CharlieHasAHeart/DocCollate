@@ -1,32 +1,20 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any
 
-
-def _parse_date(s: str) -> datetime | None:
-    s = (s or "").strip()
-    if not s:
-        return None
-    for fmt in ("%Y-%m-%d", "%Y/%m/%d", "%Y.%m.%d"):
-        try:
-            return datetime.strptime(s, fmt)
-        except ValueError:
-            continue
-    return None
-
+from ..core.date_utils import format_date, parse_date
 
 def format_date_range(start_date: str, end_date: str) -> str:
     s = (start_date or "").strip()
     e = (end_date or "").strip()
     if not s and not e:
         return ""
-    ds = _parse_date(s)
-    de = _parse_date(e)
+    ds = parse_date(s)
+    de = parse_date(e)
     if ds:
-        s = ds.strftime("%Y-%m-%d")
+        s = format_date(ds)
     if de:
-        e = de.strftime("%Y-%m-%d")
+        e = format_date(de)
     if ds and de:
         days = (de - ds).days + 1
         if days >= 1:
@@ -34,6 +22,79 @@ def format_date_range(start_date: str, end_date: str) -> str:
     if s and e:
         return f"{s} ~ {e}"
     return s or e
+
+
+PHASE_RATIO_RULES = [
+    (("需求", "分析", "调研"), 0.15),
+    (("设计", "架构"), 0.2),
+    (("开发", "实现", "编码"), 0.4),
+    (("测试", "联调", "验收"), 0.2),
+    (("部署", "上线", "交付"), 0.05),
+]
+
+
+def _phase_weight(phase: str, default_weight: float) -> float:
+    for keywords, weight in PHASE_RATIO_RULES:
+        if any(key in phase for key in keywords):
+            return weight
+    return default_weight
+
+
+def _allocate_milestone_ranges(milestones: list[dict], start_date: str, end_date: str) -> list[dict] | None:
+    start = parse_date(start_date)
+    end = parse_date(end_date)
+    if not start or not end or end < start:
+        return None
+
+    total_days = (end - start).days + 1
+    if total_days <= 0 or not milestones:
+        return None
+
+    default_weight = 0.2
+    weights = []
+    for row in milestones:
+        phase = str(row.get("phase", "") or "")
+        weights.append(_phase_weight(phase, default_weight))
+    total_weight = sum(weights) or 1.0
+    ratios = [w / total_weight for w in weights]
+
+    ideals = [total_days * ratio for ratio in ratios]
+    days = [int(x) for x in ideals]
+    fractions = [x - int(x) for x in ideals]
+
+    if total_days >= len(days):
+        for idx, value in enumerate(days):
+            if value == 0:
+                days[idx] = 1
+
+    remaining = total_days - sum(days)
+    if remaining > 0:
+        for idx in sorted(range(len(fractions)), key=lambda i: fractions[i], reverse=True)[:remaining]:
+            days[idx] += 1
+    elif remaining < 0:
+        for idx in sorted(range(len(fractions)), key=lambda i: fractions[i]):
+            if remaining == 0:
+                break
+            if days[idx] > 1:
+                days[idx] -= 1
+                remaining += 1
+
+    ranges: list[dict] = []
+    cursor = start
+    for span in days:
+        span_days = max(1, span)
+        range_end = cursor
+        if span_days > 1:
+            range_end = cursor.fromordinal(cursor.toordinal() + span_days - 1)
+        ranges.append(
+            {
+                "start_date": format_date(cursor),
+                "end_date": format_date(range_end),
+                "time": format_date_range(format_date(cursor), format_date(range_end)),
+            }
+        )
+        cursor = range_end.fromordinal(range_end.toordinal() + 1)
+    return ranges
 
 
 def build_context(manual_inputs: dict[str, Any], llm_output: dict[str, Any]) -> dict[str, Any]:
@@ -86,6 +147,12 @@ def build_context(manual_inputs: dict[str, Any], llm_output: dict[str, Any]) -> 
     context["costs"] = tables.get("costs", [])
     context["milestones"] = tables.get("milestones", [])
     milestones = tables.get("milestones", [])
+    schedule = manual_inputs.get("schedule", {}) if isinstance(manual_inputs, dict) else {}
+    schedule_ranges = _allocate_milestone_ranges(
+        milestones,
+        str(schedule.get("start_date", "")),
+        str(schedule.get("end_date", "")),
+    )
     for idx in range(5):
         row = milestones[idx] if idx < len(milestones) else {}
         num = idx + 1
@@ -93,7 +160,12 @@ def build_context(manual_inputs: dict[str, Any], llm_output: dict[str, Any]) -> 
         context[f"milestone_{num:02d}_tasks"] = row.get("tasks", "")
         start_date = row.get("start_date", "")
         end_date = row.get("end_date", "")
-        context[f"milestone_{num:02d}_time"] = format_date_range(start_date, end_date)
+        time_range = format_date_range(start_date, end_date)
+        if schedule_ranges and idx < len(schedule_ranges):
+            start_date = schedule_ranges[idx]["start_date"]
+            end_date = schedule_ranges[idx]["end_date"]
+            time_range = schedule_ranges[idx]["time"]
+        context[f"milestone_{num:02d}_time"] = time_range
         context[f"milestone_{num:02d}_start_date"] = start_date
         context[f"milestone_{num:02d}_end_date"] = end_date
         context[f"milestone_{num:02d}_deliverables"] = row.get("deliverables", "")
@@ -143,6 +215,12 @@ def build_placeholder_map(manual_inputs: dict[str, Any], llm_output: dict[str, A
     tables = llm_output.get("tables", {}) if isinstance(llm_output, dict) else {}
 
     milestones = tables.get("milestones", [])
+    schedule = manual_inputs.get("schedule", {}) if isinstance(manual_inputs, dict) else {}
+    schedule_ranges = _allocate_milestone_ranges(
+        milestones,
+        str(schedule.get("start_date", "")),
+        str(schedule.get("end_date", "")),
+    )
     for idx in range(5):
         row = milestones[idx] if idx < len(milestones) else {}
         num = idx + 1
@@ -150,7 +228,12 @@ def build_placeholder_map(manual_inputs: dict[str, Any], llm_output: dict[str, A
         placeholder_map[f"{{{{ milestone_{num:02d}_tasks }}}}"] = str(row.get("tasks", ""))
         start_date = str(row.get("start_date", ""))
         end_date = str(row.get("end_date", ""))
-        placeholder_map[f"{{{{ milestone_{num:02d}_time }}}}"] = format_date_range(start_date, end_date)
+        time_range = format_date_range(start_date, end_date)
+        if schedule_ranges and idx < len(schedule_ranges):
+            start_date = schedule_ranges[idx]["start_date"]
+            end_date = schedule_ranges[idx]["end_date"]
+            time_range = schedule_ranges[idx]["time"]
+        placeholder_map[f"{{{{ milestone_{num:02d}_time }}}}"] = time_range
         placeholder_map[f"{{{{ milestone_{num:02d}_start_date }}}}"] = start_date
         placeholder_map[f"{{{{ milestone_{num:02d}_end_date }}}}"] = end_date
         placeholder_map[f"{{{{ milestone_{num:02d}_deliverables }}}}"] = str(row.get("deliverables", ""))

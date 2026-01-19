@@ -1,12 +1,11 @@
 import json
 import logging
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from pathlib import Path
 
 from docx import Document
 
-from ..core.date_utils import default_assess_dates
-from ..config import DatesConfig
+from ..core.date_utils import parse_date
 # --- 配置日志，方便追踪脚本运行情况 ---
 logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -71,15 +70,6 @@ def replace_in_paragraph(paragraph, replacements: dict) -> None:
             break
 
 
-def _parse_date(value: str | None) -> date | None:
-    if not value:
-        return None
-    try:
-        return datetime.strptime(str(value), "%Y-%m-%d").date()
-    except (ValueError, TypeError):
-        return None
-
-
 def _to_workday(value: date) -> date:
     while value.weekday() >= 5:
         value = value - timedelta(days=1)
@@ -110,7 +100,6 @@ def _get_first_holder(profile: dict) -> dict:
 def build_copyright_replacements(
     company_profile: dict,
     data: dict,
-    dates_config: DatesConfig | None = None,
 ) -> dict:
     replacements: dict[str, str] = {}
     def set_value(_: str, lower_key: str, value: object) -> None:
@@ -129,16 +118,7 @@ def build_copyright_replacements(
     set_value("{{APP_CLASSIFICATION_CODE}}", "{{app__classification_code}}", app_classification_code)
     set_value("{{TECH_SOURCE_LINES}}", "{{tech__source_lines}}", tech_source_lines)
 
-    completion_days_ago = dates_config.assess_completion_days_ago if dates_config else 14
-    dev_months_ago = dates_config.assess_dev_months_ago if dates_config else 5
-    completion_date = _parse_date(data.get("copyright__completion_date"))
-    if completion_date is None:
-        completion_date = _parse_date(
-            default_assess_dates(
-                completion_days_ago=completion_days_ago,
-                dev_months_ago=dev_months_ago,
-            )[0]
-        )
+    completion_date = parse_date(str(data.get("copyright__completion_date", "")).strip())
     set_value(
         "{{APP_COMPLETION_YEAR}}",
         "{{copyright__completion_year}}",
@@ -340,7 +320,7 @@ def build_copyright_replacements(
             "",
         )
 
-    signature_date = _parse_date(data.get("signature__date")) or _to_workday(date.today())
+    signature_date = parse_date(str(data.get("signature__date", "")).strip()) or _to_workday(date.today())
     set_value("{{SIGNATURE_YEAR}}", "{{signature__year}}", signature_date.year)
     set_value("{{SIGNATURE_MONTH}}", "{{signature__month}}", signature_date.month)
     set_value("{{SIGNATURE_DAY}}", "{{signature__day}}", signature_date.day)
@@ -381,12 +361,11 @@ def generate_document(
     data: dict,
     template_path: Path,
     output_path: Path,
-    dates_config: DatesConfig | None = None,
 ) -> None:
     """
     Generate the software copyright application form from unified data.
     """
-    replacements = build_copyright_replacements(company_profile, data, dates_config=dates_config)
+    replacements = build_copyright_replacements(company_profile, data)
 
     try:
         doc = Document(template_path)

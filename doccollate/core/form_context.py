@@ -8,10 +8,12 @@ from .input_flow import (
     interactive_form_inputs,
     print_select,
     prompt_choice,
+    prompt_date,
     prompt_text,
     resolve_contact_info,
     select_preset,
 )
+from .date_utils import parse_date
 from ..io.io_utils import collect_inputs, ensure_output_dir, load_yaml_config
 
 CONFIG_DIR = Path.home() / ".doccollate"
@@ -27,6 +29,8 @@ class FormContext:
     app_name: str | None
     app_version: str | None
     applicant_type: str | None
+    dev_date: str
+    completion_date: str
 
 
 def _resolve_output_dir(args, output_dir_override: Path | None) -> Path:
@@ -85,6 +89,15 @@ def collect_form_context(
 
     output_dir = _resolve_output_dir(args, output_dir_override)
 
+    while True:
+        dev_date = prompt_date("Development date")
+        completion_date = prompt_date("Completion date")
+        dev = parse_date(dev_date)
+        completion = parse_date(completion_date)
+        if dev and completion and completion >= dev:
+            break
+        print("[Error] Completion date must be the same as or after development date.")
+
     files = collect_inputs(args.input or [])
     if not files:
         raise ValueError("No input files found.")
@@ -102,4 +115,6 @@ def collect_form_context(
         app_name=args.app_name or None,
         app_version=args.app_version or None,
         applicant_type=args.applicant_type or None,
+        dev_date=dev_date,
+        completion_date=completion_date,
     )
