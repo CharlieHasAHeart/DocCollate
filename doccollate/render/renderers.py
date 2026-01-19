@@ -39,7 +39,7 @@ def fill_func_table(template_path: Path, output_path: Path, data: dict) -> bool:
     if not func_list:
         return False
     tpl = DocxTemplate(template_path)
-    context = {"software_name": data.get("app__name", ""), "func_list": func_list}
+    context = {"func_list": func_list}
     tpl.render(context)
     tpl.save(output_path)
     return True
@@ -75,24 +75,10 @@ def fill_reg_table(template_path: Path, output_path: Path, data: dict, contact_i
         "{{app__name}}": data.get("app__name", ""),
         "{{app__short_name}}": data.get("app__short_name", ""),
         "{{app__version}}": data.get("app__version", ""),
-        "{{app__product_type_text}}": data.get("app__product_type_text", ""),
         "{{product__app_domain}}": data.get("product__app_domain", ""),
-        "{{app__category_assess}}": data.get("app__category_assess", ""),
-        "{{product__service_object}}": data.get("product__service_object", ""),
-        "{{product__main_functions}}": data.get("product__main_functions", ""),
-        "{{product__tech_specs}}": data.get("product__tech_specs", ""),
         "{{env__dev_platform}}": env_dev_platform,
         "{{env__dev_lang}}": env_dev_lang,
         "{{env__run_platform}}": env_run_platform,
-        "{{env__hw_dev_platform}}": data.get("env__hw_dev_platform", ""),
-        "{{env__sw_dev_platform}}": data.get("env__sw_dev_platform", ""),
-        "{{env__memory_req}}": data.get("env__memory_req", ""),
-        "{{env__hardware_model}}": data.get("env__hardware_model", ""),
-        "{{env__language}}": data.get("env__language", ""),
-        "{{env__database}}": data.get("env__database", ""),
-        "{{env__os_version}}": data.get("env__os_version", ""),
-        "{{env__server_soft}}": data.get("env__server_soft", ""),
-        "{{env__client_soft}}": data.get("env__client_soft", ""),
     }
     context.update(build_holder_context(contact_info))
     docx_replace_text(doc, context)

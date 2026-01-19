@@ -113,9 +113,8 @@ def build_copyright_replacements(
     dates_config: DatesConfig | None = None,
 ) -> dict:
     replacements: dict[str, str] = {}
-    def set_value(upper_key: str, lower_key: str, value: object) -> None:
+    def set_value(_: str, lower_key: str, value: object) -> None:
         value_str = _safe_str(value)
-        replacements[upper_key] = value_str
         replacements[lower_key] = value_str
 
     app_name = data.get("app__name", "")
@@ -295,7 +294,7 @@ def build_copyright_replacements(
 
     holders = company_profile.get("copyright_holders", [])
     holder_keys = ["name", "category", "id_type", "id_number", "nationality", "city", "found_date"]
-    for idx in range(1, 5):
+    for idx in range(1, 4):
         if idx <= len(holders):
             holder = holders[idx - 1]
             for key in holder_keys:
@@ -334,7 +333,6 @@ def build_copyright_replacements(
     is_agent = applicant_type in {"agent", "代理人", "代理"}
     set_value("{{APPLICANT_TYPE_HOLDER}}", "{{applicant__type_holder}}", _to_dot(not is_agent))
     set_value("{{APPLICANT_TYPE_AGENT}}", "{{applicant__type_agent}}", _to_dot(is_agent))
-    set_value("{{DELEGATION_STATEMENT}}", "{{delegation_statement}}", "")
     for key in applicant_keys:
         set_value(
             f"{{{{AGENT_{key.upper()}}}}}",

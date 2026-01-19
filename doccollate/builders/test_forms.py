@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 
 from ..config import AppConfig, TemplateConfig
+from ..extract.data_normalize import build_env_pool_data
 from ..core.form_context import FormContext, collect_form_context
 from ..core.form_pipeline import apply_app_metadata, build_form_data
 from ..core.field_requirements import required_fields_for_target
@@ -106,8 +107,10 @@ def generate_test_forms(args: argparse.Namespace, app_config: AppConfig, runtime
         else:
             print(f"[Output] Generated file: {output_path}")
 
+        env_data = dict(data)
+        env_data.update(build_env_pool_data())
         output_path = form_context.output_dir / build_filename("非嵌入式软件环境", software_name, version, ".docx")
-        if not fill_env_table(test_templates["env"], output_path, data):
+        if not fill_env_table(test_templates["env"], output_path, env_data):
             print(f"[Warn] No environment form generated for: {file_path}")
         else:
             print(f"[Output] Generated file: {output_path}")

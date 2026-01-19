@@ -7,10 +7,14 @@ from ..core.constants import (
     CATEGORY_ID_OPTIONS,
     CLIENT_MODEL_POOL,
     CLIENT_OS_POOL,
+    CLIENT_CONFIG_POOL,
+    CLIENT_SOFT_POOL,
     PRODUCT_TYPE_CN,
     PRODUCT_TYPE_PREFIX,
     SERVER_MODEL_POOL,
     SERVER_OS_POOL,
+    SERVER_CONFIG_POOL,
+    SERVER_SOFT_POOL,
 )
 from ..core.date_utils import default_assess_dates
 from ..config import DatesConfig
@@ -92,6 +96,32 @@ def pick_random_os() -> tuple[str, str]:
     server_os = random.choice(SERVER_OS_POOL)
     client_os = random.choice(CLIENT_OS_POOL)
     return server_os, client_os
+
+
+def pick_random_soft() -> tuple[str, str]:
+    server_soft = random.choice(SERVER_SOFT_POOL)
+    client_soft = random.choice(CLIENT_SOFT_POOL)
+    return server_soft, client_soft
+
+
+def pick_random_config() -> tuple[str, str]:
+    server_config = random.choice(SERVER_CONFIG_POOL)
+    client_config = random.choice(CLIENT_CONFIG_POOL)
+    return server_config, client_config
+
+
+def build_env_pool_data() -> dict[str, str]:
+    server_os, client_os = pick_random_os()
+    server_soft, client_soft = pick_random_soft()
+    server_config, client_config = pick_random_config()
+    return {
+        "env__server_os": server_os,
+        "env__client_os": client_os,
+        "env__server_soft": server_soft,
+        "env__client_soft": client_soft,
+        "env__server_config": server_config,
+        "env__client_config": client_config,
+    }
 
 
 def merge_missing(base: dict, updates: dict) -> dict:
@@ -219,19 +249,10 @@ def normalize_assessment_data(
     server_choice, client_choice = pick_random_models()
     if is_required("env__server_model") and not data.get("env__server_model"):
         data["env__server_model"] = server_choice["model"]
-    if is_required("env__server_config") and not data.get("env__server_config"):
-        data["env__server_config"] = server_choice["config"]
     if is_required("env__client_model") and not data.get("env__client_model"):
         data["env__client_model"] = client_choice["model"]
-    if is_required("env__client_config") and not data.get("env__client_config"):
-        data["env__client_config"] = client_choice["config"]
 
-    server_os, client_os = pick_random_os()
-    if is_required("env__server_os") and not data.get("env__server_os"):
-        data["env__server_os"] = server_os
-    if is_required("env__client_os") and not data.get("env__client_os"):
-        data["env__client_os"] = client_os
-
+    # Always pick a single OS (with version) from pools for server/client.
     return data
 
 
@@ -278,38 +299,18 @@ def derive_fields(data: dict, required_fields: set[str] | None = None) -> dict:
             if names:
                 data["product__main_functions"] = "、".join(names[:5]) + "等功能"
 
-    server_os = data.get("env__server_os", "")
-    client_os = data.get("env__client_os", "")
-    if is_required("tech__os_run") and (server_os or client_os):
-        if server_os and client_os:
-            data["tech__os_run"] = f"服务器端：{server_os}；客户端：{client_os}"
-        else:
-            data["tech__os_run"] = server_os or client_os
-
-    server_soft = data.get("env__server_soft", "")
-    client_soft = data.get("env__client_soft", "")
-    if is_required("tech__run_support") and (server_soft or client_soft):
-        if server_soft and client_soft:
-            data["tech__run_support"] = f"服务器端：{server_soft}；客户端：{client_soft}"
-        else:
-            data["tech__run_support"] = server_soft or client_soft
-
     if is_required("tech__hardware_dev") and not data.get("tech__hardware_dev"):
         hw_dev = data.get("env__hw_dev_platform", "")
         if hw_dev:
             data["tech__hardware_dev"] = f"开发硬件环境：{hw_dev}"
 
-    if is_required("tech__hardware_run") and not data.get("tech__hardware_run"):
-        server_hw = data.get("env__server_config", "")
-        client_hw = data.get("env__client_config", "")
-        if server_hw or client_hw:
-            if server_hw and client_hw:
-                data["tech__hardware_run"] = f"服务器端：{server_hw}；客户端：{client_hw}"
-            else:
-                data["tech__hardware_run"] = server_hw or client_hw
-
     if is_required("tech__os_dev") and not data.get("tech__os_dev"):
-        data["tech__os_dev"] = data.get("env__os_version", "") or data.get("env__os", "") or server_os or client_os
+        data["tech__os_dev"] = data.get("env__os_version", "") or data.get("env__os", "")
+
+    if is_required("tech__os_run") and not data.get("tech__os_run"):
+        run_platform = data.get("env__run_platform", "") or data.get("env__os", "")
+        if run_platform:
+            data["tech__os_run"] = run_platform
 
     if is_required("tech__dev_tools") and not data.get("tech__dev_tools"):
         dev_tools = data.get("env__sw_dev_platform", "")
