@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -33,16 +32,7 @@ def _require(module_name: str) -> Callable:
 
 
 def parse_docx(path: str) -> str:
-    text = _read_docx_via_pandoc(path)
-    if text:
-        return text
-    try:
-        from docx import Document
-    except Exception:  # pragma: no cover - import error path
-        _require("python-docx")()
-    doc = Document(path)
-    parts = [p.text for p in doc.paragraphs if p.text]
-    return "\n".join(parts)
+    return convert_docx_to_md(path)
 
 
 def _read_docx_via_pandoc(path: str, max_chars: int = 40000) -> str:
@@ -57,27 +47,34 @@ def _read_docx_via_pandoc(path: str, max_chars: int = 40000) -> str:
             if result.returncode != 0:
                 return ""
             content = md_path.read_text(encoding="utf-8")
-            save_path = _pandoc_save_path(path)
-            if save_path:
-                try:
-                    save_path.parent.mkdir(parents=True, exist_ok=True)
-                    save_path.write_text(content, encoding="utf-8")
-                except Exception:
-                    pass
             return content[:max_chars]
     except Exception:
         return ""
 
 
-def _pandoc_save_path(path: str) -> Path | None:
-    flag = os.getenv("DOCCOLLATE_PANDOC_SAVE_MD", "").strip().lower()
-    if flag not in {"1", "true", "yes", "y"}:
-        return None
-    output_dir = os.getenv("DOCCOLLATE_PANDOC_SAVE_DIR", "").strip()
-    source = Path(path)
-    if output_dir:
-        return (Path(output_dir).expanduser() / f"{source.stem}.md").resolve()
-    return source.with_suffix(".md")
+def _write_md(path: str, content: str) -> None:
+    try:
+        out_path = Path(path).with_suffix(".md")
+        out_path.write_text(content, encoding="utf-8")
+    except Exception:
+        pass
+
+
+def convert_docx_to_md(path: str, max_chars: int = 40000) -> str:
+    text = _read_docx_via_pandoc(path, max_chars=max_chars)
+    if text:
+        _write_md(path, text)
+        return text
+    try:
+        from docx import Document
+    except Exception:  # pragma: no cover - import error path
+        _require("python-docx")()
+    doc = Document(path)
+    parts = [p.text for p in doc.paragraphs if p.text]
+    content = "\n".join(parts)
+    if content:
+        _write_md(path, content)
+    return content
 
 
 def parse_pdf(path: str) -> str:
