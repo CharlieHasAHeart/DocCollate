@@ -63,6 +63,29 @@ def normalize_app_type(value: str) -> str:
     return raw
 
 
+def allowed_domains() -> list[str]:
+    uniq: list[str] = []
+    seen: set[str] = set()
+    for p in PROFILES:
+        domain = (p.product__app_domain or "").strip()
+        if not domain or domain in seen:
+            continue
+        seen.add(domain)
+        uniq.append(domain)
+    return uniq
+
+
+def normalize_domain(value: str) -> str:
+    raw = (value or "").strip()
+    if not raw:
+        return ""
+    raw_lc = raw.lower()
+    for domain in allowed_domains():
+        if domain.lower() == raw_lc:
+            return domain
+    return raw
+
+
 def select_platform_profile(source_text: str, explicit_app_type: str = "") -> tuple[PlatformProfile | None, dict[str, float]]:
     if not PROFILES:
         return None, {}
@@ -88,4 +111,32 @@ def select_platform_profile(source_text: str, explicit_app_type: str = "") -> tu
         scores[p.app_type] = score
 
     best = max(PROFILES, key=lambda p: scores.get(p.app_type, 0.0))
+    return best, scores
+
+
+def select_platform_profile_by_domain(
+    source_text: str, explicit_domain: str = ""
+) -> tuple[PlatformProfile | None, dict[str, float]]:
+    if not PROFILES:
+        return None, {}
+
+    domain = normalize_domain(explicit_domain)
+    candidates = [p for p in PROFILES if p.product__app_domain == domain] if domain else list(PROFILES)
+    if not candidates:
+        candidates = list(PROFILES)
+
+    text = _normalize(source_text)
+    scores: dict[str, float] = {}
+    for p in candidates:
+        score = 0.0
+        for kw in p.keywords:
+            if kw and kw in text:
+                score += 1.0
+        # mild prior for common enterprise web when equal
+        if p.app_type == "B/S业务系统":
+            score += 0.2
+        key = f"{p.app_type}|{p.product__app_domain}"
+        scores[key] = score
+
+    best = max(candidates, key=lambda p: scores.get(f"{p.app_type}|{p.product__app_domain}", 0.0))
     return best, scores

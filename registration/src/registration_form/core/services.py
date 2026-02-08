@@ -9,7 +9,7 @@ from .models import RegistrationInputSchema, RegistrationOutputSchema
 from .renderer import generate_document
 from ..infra.fs import detect_dev_lang, detect_platform, load_yaml_config, read_text_content
 from ..infra.path_utils import normalize_path
-from ..infra.platform_pool import select_platform_profile
+from ..infra.platform_pool import select_platform_profile_by_domain
 from ..infra.registration_llm import infer_registration_fields_with_llm
 from ..utils.format import build_filename
 
@@ -43,7 +43,7 @@ def run_from_args(args) -> int:
     raw_data = dict(model.data or {})
     app_name = (model.app_name or raw_data.get("app__name") or "").strip()
     app_version = (model.app_version or raw_data.get("app__version") or "V1.0").strip()
-    app_short_name = (model.app_short_name or raw_data.get("app__short_name") or app_name).strip()
+    app_short_name = ""
 
     source_text = (model.source_text or "").strip()
     if not source_text and model.spec_path:
@@ -55,10 +55,10 @@ def run_from_args(args) -> int:
         logger.error("Registration LLM inference failed: %s", exc)
         return 2
 
-    explicit_app_type = str(llm_result.get("app_type", "")).strip()
-    profile, scores = select_platform_profile(source_text, explicit_app_type=explicit_app_type)
+    selected_domain = str(llm_result.get("product__app_domain", "")).strip()
+    profile, scores = select_platform_profile_by_domain(source_text, explicit_domain=selected_domain)
     if profile:
-        logger.info("Selected platform profile: app_type=%s", profile.app_type)
+        logger.info("Selected profile by domain: domain=%s app_type=%s", selected_domain, profile.app_type)
         logger.info("Profile scores: %s", scores)
 
     env_dev_lang = (
@@ -68,21 +68,18 @@ def run_from_args(args) -> int:
     )
     env_dev_platform = (
         str(raw_data.get("env__dev_platform") or "").strip()
-        or str(llm_result.get("env__dev_platform", "")).strip()
         or (profile.env__dev_platform if profile else "")
         or detect_platform(source_text)
     )
     env_run_platform = (
         str(raw_data.get("env__run_platform") or "").strip()
-        or str(llm_result.get("env__run_platform", "")).strip()
         or (profile.env__run_platform if profile else "")
         or detect_platform(source_text)
     )
     product_app_domain = (
         str(raw_data.get("product__app_domain") or "").strip()
-        or str(llm_result.get("product__app_domain", "")).strip()
-        or (profile.product__app_domain if profile else "")
-        or "信息管理软件"
+        or selected_domain
+        or "企业管理"
     )
 
     contact_config = load_yaml_config(normalize_path(model.contact_info) if model.contact_info else cfg.doccollate.contact_info)

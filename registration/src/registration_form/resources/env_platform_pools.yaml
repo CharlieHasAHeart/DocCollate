@@ -3,52 +3,52 @@ profiles:
     keywords: ["bs", "b/s", "web", "浏览器", "前端", "后端", "管理平台"]
     env__dev_platform: "Windows 10/11、Ubuntu 20.04+、macOS 12+"
     env__run_platform: "浏览器环境（Chrome/Edge）+ Linux服务器（Ubuntu 20.04+）"
-    product__app_domain: "信息管理软件"
+    product__app_domain: "企业管理"
 
   - app_type: 数据/AI平台
     keywords: ["ai", "机器学习", "深度学习", "模型训练", "数据平台", "推理"]
     env__dev_platform: "Ubuntu 20.04+、CentOS 7+、Windows 11"
     env__run_platform: "Linux服务器集群（Ubuntu 20.04+ / CentOS 7+）"
-    product__app_domain: "模式识别软件"
+    product__app_domain: "互联网服务"
 
   - app_type: 桌面客户端软件
     keywords: ["桌面", "客户端", "exe", "winform", "wpf", "qt"]
     env__dev_platform: "Windows 10/11、macOS 12+"
     env__run_platform: "Windows 10/11（可选 macOS 12+）"
-    product__app_domain: "应用软件"
+    product__app_domain: "办公和管理"
 
   - app_type: 移动端应用
     keywords: ["android", "ios", "移动端", "app", "小程序", "flutter"]
     env__dev_platform: "macOS 12+、Windows 10/11、Ubuntu 20.04+"
     env__run_platform: "Android 10+、iOS 14+"
-    product__app_domain: "网络应用软件"
+    product__app_domain: "互联网服务"
 
   - app_type: 工业物联网平台
     keywords: ["iot", "物联网", "边缘网关", "plc", "传感器", "工业"]
     env__dev_platform: "Ubuntu 20.04+、CentOS 7+、Windows 11"
     env__run_platform: "Linux服务器 + 工业边缘节点（Ubuntu 20.04+）"
-    product__app_domain: "控制软件"
+    product__app_domain: "能源和环保"
 
   - app_type: 金融交易系统
     keywords: ["交易", "清算", "风控", "金融", "撮合", "结算"]
     env__dev_platform: "Ubuntu 22.04+、CentOS 7+、Windows 11"
     env__run_platform: "Linux服务器（Ubuntu 22.04+）"
-    product__app_domain: "行业管理软件"
+    product__app_domain: "金融"
 
   - app_type: 医疗信息系统
     keywords: ["医院", "医疗", "his", "emr", "电子病历", "门诊"]
     env__dev_platform: "Windows 10/11、Ubuntu 20.04+、CentOS 7+"
     env__run_platform: "B/S浏览器端 + Linux服务器（Ubuntu 20.04+）"
-    product__app_domain: "行业管理软件"
+    product__app_domain: "医疗卫生"
 
   - app_type: 教育平台
     keywords: ["教育", "教学", "课程", "题库", "学习", "课堂"]
     env__dev_platform: "Windows 10/11、Ubuntu 20.04+、macOS 12+"
     env__run_platform: "B/S浏览器端 + Android 10+/iOS 14+"
-    product__app_domain: "教育软件"
+    product__app_domain: "教育"
 
   - app_type: 游戏服务平台
     keywords: ["游戏", "匹配", "战斗", "玩家", "大厅", "服"]
     env__dev_platform: "Windows 10/11、Ubuntu 20.04+、macOS 12+"
     env__run_platform: "客户端（Windows/Android/iOS）+ Linux游戏服务器"
-    product__app_domain: "游戏软件"
+    product__app_domain: "文化创意"

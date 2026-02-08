@@ -36,12 +36,12 @@ class RegistrationOutputSchema(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     app__name: str = Field(min_length=1)
-    app__short_name: str = Field(min_length=1)
+    app__short_name: str = ""
     app__version: str = Field(min_length=1)
     env__dev_lang: str = "待补充"
     env__dev_platform: str = "待补充"
     env__run_platform: str = "待补充"
-    product__app_domain: str = "信息管理软件"
+    product__app_domain: str = "企业管理"
 
     holder__name: str = ""
     holder__address: str = ""
