@@ -6,7 +6,6 @@ import re
 from pathlib import Path
 
 from .config import AppConfig, load_config
-from .extractor import extract_function_list
 from .models import (
     FunctionInputSchema,
     FunctionItem,
@@ -141,25 +140,14 @@ def run_from_args(args) -> int:
         chunks = chunk_text(source_text)
         retrieved = retrieve_function_chunks(chunks, top_k=10)
         logger.info("Chunked spec into %s chunks; retrieved %s chunks for LLM", len(chunks), len(retrieved))
-        llm_struct = infer_functions_with_llm(cfg.llm, retrieved)
-        if llm_struct:
-            modules = _llm_to_modules(llm_struct)
-            rows = sum(len(m.items) for m in modules)
-            logger.info("Using LLM extracted function hierarchy: modules=%s rows=%s", len(modules), rows)
-        else:
-            logger.warning("LLM extraction unavailable; fallback to rule-based extraction")
-            base_items = extract_function_list(source_text)
-            fallback_items = [
-                FunctionItem(
-                    name="待补充",
-                    desc=item.desc if item.desc.startswith("可以") else f"可以{item.desc}",
-                )
-                for item in base_items
-            ]
-            modules = [
-                FunctionModule(name=item.name, items=[fallback_items[idx]])
-                for idx, item in enumerate(base_items)
-            ]
+        try:
+            llm_struct = infer_functions_with_llm(cfg.llm, retrieved)
+        except Exception as exc:
+            logger.error("LLM extraction failed: %s", exc)
+            return 2
+        modules = _llm_to_modules(llm_struct)
+        rows = sum(len(m.items) for m in modules)
+        logger.info("Using LLM extracted function hierarchy: modules=%s rows=%s", len(modules), rows)
 
     output_model = FunctionOutputSchema.model_validate(
         {

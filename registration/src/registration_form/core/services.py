@@ -10,6 +10,7 @@ from .renderer import generate_document
 from ..infra.fs import detect_dev_lang, detect_platform, load_yaml_config, read_text_content
 from ..infra.path_utils import normalize_path
 from ..infra.platform_pool import select_platform_profile
+from ..infra.registration_llm import infer_registration_fields_with_llm
 from ..utils.format import build_filename
 
 logger = logging.getLogger(__name__)
@@ -48,25 +49,38 @@ def run_from_args(args) -> int:
     if not source_text and model.spec_path:
         source_text = read_text_content(normalize_path(model.spec_path))
 
-    explicit_app_type = str(model.app_type or raw_data.get("app_type") or "").strip()
+    try:
+        llm_result = infer_registration_fields_with_llm(cfg.llm, source_text)
+    except Exception as exc:
+        logger.error("Registration LLM inference failed: %s", exc)
+        return 2
+
+    explicit_app_type = str(llm_result.get("app_type", "")).strip()
     profile, scores = select_platform_profile(source_text, explicit_app_type=explicit_app_type)
     if profile:
         logger.info("Selected platform profile: app_type=%s", profile.app_type)
         logger.info("Profile scores: %s", scores)
 
-    env_dev_lang = str(raw_data.get("env__dev_lang") or "").strip() or detect_dev_lang(source_text)
+    env_dev_lang = (
+        str(raw_data.get("env__dev_lang") or "").strip()
+        or str(llm_result.get("env__dev_lang", "")).strip()
+        or detect_dev_lang(source_text)
+    )
     env_dev_platform = (
         str(raw_data.get("env__dev_platform") or "").strip()
+        or str(llm_result.get("env__dev_platform", "")).strip()
         or (profile.env__dev_platform if profile else "")
         or detect_platform(source_text)
     )
     env_run_platform = (
         str(raw_data.get("env__run_platform") or "").strip()
+        or str(llm_result.get("env__run_platform", "")).strip()
         or (profile.env__run_platform if profile else "")
         or detect_platform(source_text)
     )
     product_app_domain = (
         str(raw_data.get("product__app_domain") or "").strip()
+        or str(llm_result.get("product__app_domain", "")).strip()
         or (profile.product__app_domain if profile else "")
         or "信息管理软件"
     )

@@ -29,12 +29,13 @@ def _build_prompt(chunks: list[TextChunk]) -> str:
     )
 
 
-def infer_functions_with_llm(llm: LLMConfig, chunks: list[TextChunk]) -> LLMFunctionSchema | None:
+def infer_functions_with_llm(llm: LLMConfig, chunks: list[TextChunk]) -> LLMFunctionSchema:
     if not chunks:
-        return None
+        raise ValueError("LLM inference requires non-empty retrieved chunks")
     if not llm.base_url or not llm.model:
-        logger.info("Skip function LLM inference: base_url/model not configured")
-        return None
+        raise ValueError("Missing DOCCOLLATE_LLM_BASE_URL or DOCCOLLATE_LLM_MODEL")
+    if not llm.api_key:
+        raise ValueError("Missing DOCCOLLATE_LLM_API_KEY")
 
     url = llm.base_url.rstrip("/") + "/chat/completions"
     req_payload = {
@@ -58,11 +59,9 @@ def infer_functions_with_llm(llm: LLMConfig, chunks: list[TextChunk]) -> LLMFunc
             raw = resp.read().decode("utf-8", errors="ignore")
     except error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="ignore") if hasattr(exc, "read") else str(exc)
-        logger.warning("Function LLM HTTP error: %s %s", exc.code, detail[:300])
-        return None
+        raise RuntimeError(f"Function LLM HTTP error: {exc.code} {detail[:300]}") from exc
     except Exception as exc:
-        logger.warning("Function LLM call failed: %s", exc)
-        return None
+        raise RuntimeError(f"Function LLM call failed: {exc}") from exc
 
     try:
         data = json.loads(raw)
@@ -70,5 +69,4 @@ def infer_functions_with_llm(llm: LLMConfig, chunks: list[TextChunk]) -> LLMFunc
         obj = json.loads(content) if isinstance(content, str) else content
         return LLMFunctionSchema.model_validate(obj)
     except Exception as exc:
-        logger.warning("Function LLM parse/validate failed: %s", exc)
-        return None
+        raise RuntimeError(f"Function LLM parse/validate failed: {exc}") from exc

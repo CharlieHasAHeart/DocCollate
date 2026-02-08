@@ -18,12 +18,21 @@ class TemplateConfig:
 
 
 @dataclass(frozen=True)
+class LLMConfig:
+    api_key: str
+    base_url: str
+    model: str
+    timeout_seconds: int
+
+
+@dataclass(frozen=True)
 class DocCollateConfig:
     contact_info: Path | None
 
 
 @dataclass(frozen=True)
 class AppConfig:
+    llm: LLMConfig
     templates: TemplateConfig
     doccollate: DocCollateConfig
     config_path: Path
@@ -51,6 +60,22 @@ def load_config(path: str) -> AppConfig:
     data = raw.get("tool", {}).get("doccollate", {})
     base_dir = config_path.parent
 
+    llm = data.get("llm", {})
+    llm_config = LLMConfig(
+        api_key=_read_env("DOCCOLLATE_LLM_API_KEY") or str(llm.get("api_key", "")).strip(),
+        base_url=_read_env("DOCCOLLATE_LLM_BASE_URL") or str(llm.get("base_url", "")).strip(),
+        model=(
+            _read_env("DOCCOLLATE_LLM_MODEL")
+            or str(llm.get("model", "qwen3-max")).strip()
+            or "qwen3-max"
+        ),
+        timeout_seconds=int(
+            _read_env("DOCCOLLATE_LLM_TIMEOUT")
+            or str(llm.get("timeout_seconds", 25)).strip()
+            or "25"
+        ),
+    )
+
     templates = data.get("templates", {})
     registration_template = _resolve_path(
         _read_env("DOCCOLLATE_TEMPLATE_REGISTRATION") or str(templates.get("registration", "")).strip(),
@@ -65,6 +90,7 @@ def load_config(path: str) -> AppConfig:
     )
 
     return AppConfig(
+        llm=llm_config,
         templates=TemplateConfig(registration=registration_template),
         doccollate=DocCollateConfig(contact_info=contact_info),
         config_path=config_path,

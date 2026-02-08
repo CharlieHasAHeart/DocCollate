@@ -48,6 +48,21 @@ def _normalize(text: str) -> str:
     return re.sub(r"\s+", " ", (text or "").strip().lower())
 
 
+def allowed_app_types() -> list[str]:
+    return [p.app_type for p in PROFILES]
+
+
+def normalize_app_type(value: str) -> str:
+    raw = (value or "").strip()
+    if not raw:
+        return ""
+    raw_lc = raw.lower()
+    for app_type in allowed_app_types():
+        if app_type.lower() == raw_lc:
+            return app_type
+    return raw
+
+
 def select_platform_profile(source_text: str, explicit_app_type: str = "") -> tuple[PlatformProfile | None, dict[str, float]]:
     if not PROFILES:
         return None, {}

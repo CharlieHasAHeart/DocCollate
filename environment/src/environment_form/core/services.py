@@ -57,16 +57,16 @@ def run_from_args(args) -> int:
     app_name = (model.app_name or raw_data.get("app__name") or guessed_name or "软件系统").strip()
     app_version = (model.app_version or raw_data.get("app__version") or guessed_version or "V1.0").strip()
 
-    explicit_app_type = str(model.app_type or raw_data.get("app_type") or "").strip()
-    llm_app_type = ""
-    if not explicit_app_type:
-        llm_app_type = str(infer_app_type_via_llm(cfg.llm, source_text) or "").strip()
-    selected_app_type = explicit_app_type or llm_app_type
+    try:
+        llm_app_type = str(infer_app_type_via_llm(cfg.llm, source_text)).strip()
+    except Exception as exc:
+        logger.error("LLM app_type inference failed: %s", exc)
+        return 2
+    selected_app_type = llm_app_type
     profile, scores = select_profile(source_text, explicit_app_type=selected_app_type)
     default_profile = get_default_profile()
     if profile:
-        if llm_app_type:
-            logger.info("Selected app_type by LLM: %s", llm_app_type)
+        logger.info("Selected app_type by LLM: %s", llm_app_type)
         logger.info("Selected environment profile: app_type=%s", profile.app_type)
         logger.info("Profile scores: %s", scores)
 

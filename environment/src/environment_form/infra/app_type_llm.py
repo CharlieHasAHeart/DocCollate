@@ -25,16 +25,16 @@ def _build_prompt(source_text: str) -> str:
     )
 
 
-def infer_app_type_via_llm(llm: LLMConfig, source_text: str) -> str | None:
+def infer_app_type_via_llm(llm: LLMConfig, source_text: str) -> str:
     app_types = allowed_app_types()
     if not app_types:
-        logger.info("Skip LLM app_type inference: no app types from profile pool")
-        return None
+        raise ValueError("No app types loaded from profile pool")
     if not source_text.strip():
-        return None
+        raise ValueError("Empty source_text for app_type inference")
     if not llm.base_url or not llm.model:
-        logger.info("Skip LLM app_type inference: base_url/model not configured")
-        return None
+        raise ValueError("Missing DOCCOLLATE_LLM_BASE_URL or DOCCOLLATE_LLM_MODEL")
+    if not llm.api_key:
+        raise ValueError("Missing DOCCOLLATE_LLM_API_KEY")
 
     url = llm.base_url.rstrip("/") + "/chat/completions"
     payload = {
@@ -60,11 +60,9 @@ def infer_app_type_via_llm(llm: LLMConfig, source_text: str) -> str | None:
             raw = resp.read().decode("utf-8", errors="ignore")
     except error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="ignore") if hasattr(exc, "read") else str(exc)
-        logger.warning("LLM app_type inference HTTP error: %s %s", exc.code, detail[:300])
-        return None
+        raise RuntimeError(f"LLM app_type inference HTTP error: {exc.code} {detail[:300]}") from exc
     except Exception as exc:
-        logger.warning("LLM app_type inference failed: %s", exc)
-        return None
+        raise RuntimeError(f"LLM app_type inference failed: {exc}") from exc
 
     try:
         data = json.loads(raw)
@@ -78,8 +76,6 @@ def infer_app_type_via_llm(llm: LLMConfig, source_text: str) -> str | None:
         if app_type in app_types:
             logger.info("LLM inferred app_type=%s", app_type)
             return app_type
-        logger.warning("LLM returned unsupported app_type: %s", app_type)
-        return None
+        raise RuntimeError(f"LLM returned unsupported app_type: {app_type}")
     except Exception as exc:
-        logger.warning("Failed to parse LLM app_type response: %s", exc)
-        return None
+        raise RuntimeError(f"Failed to parse LLM app_type response: {exc}") from exc
