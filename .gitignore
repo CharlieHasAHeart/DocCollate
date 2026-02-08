@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual envs
+.venv/
+**/.venv/
+
+# Local env/config secrets
+.env
+**/.env
+
+# Build/test outputs
+out/
+**/out/
+debug/
+**/debug/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+*.egg-info/
+*:Zone.Identifier

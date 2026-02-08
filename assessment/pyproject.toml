@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "doccollate-assessment"
+version = "0.1.0"
+description = "Standalone assessment-application generator"
+requires-python = ">=3.10"
+dependencies = [
+  "pydantic>=2,<3",
+  "pydantic-ai>=0.0.13",
+  "openai>=1.0.0",
+  "python-dotenv",
+  "python-docx",
+  "openpyxl",
+  "jieba",
+  "rank-bm25",
+  "tomli; python_version < '3.11'",
+]
+
+[project.scripts]
+assessment-form = "assessment_form.cli:main"
+
+[tool.hatch.build]
+include = [
+  "src/assessment_form/resources/*",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/assessment_form"]
+
+[tool.doccollate.templates]
+assessment = "src/assessment_form/resources/assessment_application_materials.xlsx"
+
+[tool.doccollate.llm]
+model = "qwen3-max"
+base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1/"
+api_key = ""

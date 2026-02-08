@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "doccollate-environment"
+version = "0.1.0"
+description = "Standalone non-embedded-environment form generator"
+requires-python = ">=3.10"
+dependencies = [
+  "pydantic>=2,<3",
+  "python-docx",
+  "python-dotenv",
+  "pyyaml",
+  "tomli; python_version < '3.11'",
+]
+
+[project.scripts]
+environment-form = "environment_form.cli:main"
+
+[tool.hatch.build]
+include = [
+  "src/environment_form/resources/*",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/environment_form"]
+
+[tool.doccollate.templates]
+environment = "src/environment_form/resources/non_embedded_environment.docx"
+
+[tool.doccollate.llm]
+model = "qwen3-max"
+base_url = ""
+api_key = ""
+timeout_seconds = 25

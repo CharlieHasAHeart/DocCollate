@@ -1,0 +1,15 @@
+[tool.doccollate.llm]
+model = "qwen3-max"
+skeleton_model = "qwen3-max"
+final_model = "qwen3-max"
+
+[tool.doccollate.templates]
+copyright = "src/doccollate_copyright/resources/software_copyright_application_form.docx"
+
+[tool.doccollate.doccollate]
+contact_info = "src/doccollate_copyright/resources/soft_copyright.yaml"
+preset_choice = ""
+
+[tool.doccollate.dates]
+assess_completion_days_ago = 14
+assess_dev_months_ago = 5

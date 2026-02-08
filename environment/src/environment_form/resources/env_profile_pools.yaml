@@ -1,0 +1,124 @@
+settings:
+  default_app_type: B/S业务系统
+  aliases:
+    移动应用平台: 移动端应用
+  app_type_priors:
+    B/S业务系统: 0.2
+
+profiles:
+  - app_type: B/S业务系统
+    keywords: ["bs", "b/s", "web", "浏览器", "管理平台", "前端", "后端", "业务系统"]
+    env__server_os: "Ubuntu 22.04 LTS (64位)"
+    env__server_soft: "Nginx 1.24、Node.js 20、MySQL 8.0、Redis 7"
+    env__server_model: "云服务器（8核16G）"
+    env__server_config: "CPU: 8核；内存: 16GB；存储: 200GB SSD；网络: 千兆"
+    env__server_id: "厂商设备"
+    env__client_os: "Windows 10/11、macOS 12+ (64位)"
+    env__client_soft: "Chrome 120+ / Edge 120+"
+    env__client_model: "办公终端（台式机/笔记本）"
+    env__client_config: "CPU: 4核；内存: 8GB；存储: 100GB；网络: 宽带"
+    env__client_id: "厂商设备"
+
+  - app_type: 数据/AI平台
+    keywords: ["ai", "机器学习", "深度学习", "模型", "训练", "推理", "数据平台"]
+    env__server_os: "Ubuntu 22.04 LTS / CentOS 7+ (64位)"
+    env__server_soft: "Python 3.11、CUDA 12、PyTorch 2.x、PostgreSQL 14"
+    env__server_model: "GPU服务器（16核64G+GPU）"
+    env__server_config: "CPU: 16核；内存: 64GB；存储: 1TB SSD；网络: 万兆"
+    env__server_id: "厂商设备"
+    env__client_os: "Windows 10/11、macOS 13+"
+    env__client_soft: "Chrome 120+ / JupyterLab"
+    env__client_model: "高性能工作站"
+    env__client_config: "CPU: 8核；内存: 16GB；存储: 200GB；网络: 宽带"
+    env__client_id: "厂商设备"
+
+  - app_type: 桌面客户端软件
+    keywords: ["桌面", "客户端", "exe", "qt", "winform", "wpf"]
+    env__server_os: "Windows Server 2019/2022"
+    env__server_soft: "IIS 10、.NET 6/8、SQL Server 2019"
+    env__server_model: "应用服务器（8核16G）"
+    env__server_config: "CPU: 8核；内存: 16GB；存储: 500GB SSD；网络: 千兆"
+    env__server_id: "厂商设备"
+    env__client_os: "Windows 10/11 (64位)"
+    env__client_soft: ".NET Runtime 6/8 / VC++ Runtime"
+    env__client_model: "商用终端"
+    env__client_config: "CPU: 4核；内存: 8GB；存储: 100GB；网络: 宽带"
+    env__client_id: "厂商设备"
+
+  - app_type: 移动端应用
+    keywords: ["android", "ios", "移动端", "app", "小程序", "flutter"]
+    env__server_os: "Ubuntu 22.04 LTS (64位)"
+    env__server_soft: "Nginx 1.24、Java 17、MySQL 8.0、Redis 7"
+    env__server_model: "云服务器（8核32G）"
+    env__server_config: "CPU: 8核；内存: 32GB；存储: 300GB SSD；网络: 千兆"
+    env__server_id: "厂商设备"
+    env__client_os: "Android 10+ / iOS 14+"
+    env__client_soft: "移动客户端 App"
+    env__client_model: "智能手机"
+    env__client_config: "CPU: 八核；内存: 6GB；存储: 64GB；网络: 4G/5G"
+    env__client_id: "厂商设备"
+
+  - app_type: 工业物联网平台
+    keywords: ["iot", "物联网", "边缘网关", "plc", "传感器", "工业"]
+    env__server_os: "Ubuntu 22.04 LTS / CentOS 7+ (64位)"
+    env__server_soft: "Nginx 1.24、Java 17、EMQX 5+、PostgreSQL 14"
+    env__server_model: "工业平台服务器（16核64G）"
+    env__server_config: "CPU: 16核；内存: 64GB；存储: 1TB SSD；网络: 万兆"
+    env__server_id: "厂商设备"
+    env__client_os: "Windows 10/11 (64位)"
+    env__client_soft: "Chrome 120+ / 工控终端软件"
+    env__client_model: "工业终端 / 边缘网关"
+    env__client_config: "CPU: 4核；内存: 8GB；存储: 64GB；网络: 千兆"
+    env__client_id: "厂商设备"
+
+  - app_type: 金融交易系统
+    keywords: ["交易", "清算", "风控", "金融", "撮合", "结算"]
+    env__server_os: "Ubuntu 22.04+ / CentOS 7+ (64位)"
+    env__server_soft: "Nginx 1.24、Java 17、PostgreSQL 14、Kafka 3.x"
+    env__server_model: "高性能服务器（32核128G）"
+    env__server_config: "CPU: 32核；内存: 128GB；存储: 2TB SSD；网络: 万兆"
+    env__server_id: "厂商设备"
+    env__client_os: "Windows 10/11、macOS 12+"
+    env__client_soft: "Chrome 120+ / 专用交易客户端"
+    env__client_model: "交易终端"
+    env__client_config: "CPU: 8核；内存: 16GB；存储: 200GB；网络: 千兆"
+    env__client_id: "厂商设备"
+
+  - app_type: 医疗信息系统
+    keywords: ["医院", "医疗", "his", "emr", "电子病历", "门诊"]
+    env__server_os: "Ubuntu 20.04+ / CentOS 7+ (64位)"
+    env__server_soft: "Nginx 1.24、Java 17、MySQL 8.0、Redis 7"
+    env__server_model: "医院业务服务器（16核64G）"
+    env__server_config: "CPU: 16核；内存: 64GB；存储: 1TB SSD；网络: 千兆"
+    env__server_id: "厂商设备"
+    env__client_os: "Windows 10/11 (64位)"
+    env__client_soft: "Chrome 120+ / 医疗工作站客户端"
+    env__client_model: "医疗工作站终端"
+    env__client_config: "CPU: 4核；内存: 8GB；存储: 100GB；网络: 百兆"
+    env__client_id: "厂商设备"
+
+  - app_type: 教育平台
+    keywords: ["教育", "教学", "课程", "题库", "学习", "课堂"]
+    env__server_os: "Ubuntu 20.04+ (64位)"
+    env__server_soft: "Nginx 1.24、Node.js 20、MySQL 8.0、Redis 7"
+    env__server_model: "教育平台服务器（8核32G）"
+    env__server_config: "CPU: 8核；内存: 32GB；存储: 500GB SSD；网络: 千兆"
+    env__server_id: "厂商设备"
+    env__client_os: "Windows 10/11、Android 10+、iOS 14+"
+    env__client_soft: "Chrome 120+ / 移动端 App"
+    env__client_model: "教学终端 / 手机平板"
+    env__client_config: "CPU: 4核；内存: 8GB；存储: 64GB；网络: 宽带/4G/5G"
+    env__client_id: "厂商设备"
+
+  - app_type: 游戏服务平台
+    keywords: ["游戏", "匹配", "战斗", "玩家", "大厅", "服"]
+    env__server_os: "Ubuntu 20.04+ / CentOS 7+ (64位)"
+    env__server_soft: "Nginx 1.24、.NET 8 / Node.js 20、MySQL 8.0、Redis 7"
+    env__server_model: "游戏服务器（32核128G）"
+    env__server_config: "CPU: 32核；内存: 128GB；存储: 2TB SSD；网络: 万兆"
+    env__server_id: "厂商设备"
+    env__client_os: "Windows 10/11、Android 10+、iOS 14+"
+    env__client_soft: "游戏客户端"
+    env__client_model: "游戏终端"
+    env__client_config: "CPU: 8核；内存: 16GB；存储: 200GB；网络: 千兆"
+    env__client_id: "厂商设备"

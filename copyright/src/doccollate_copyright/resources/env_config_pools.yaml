@@ -1,0 +1,252 @@
+tech__hardware_dev:
+  - candidate_id: dev_hw_web
+    app_type: B/S业务系统
+    content: |
+      最低配置：CPU：4核 x86_64（2.5GHz+）；内存：16GB；存储：256GB SSD；网络：100Mbps；
+      推荐配置：CPU：8核 x86_64（3.0GHz+）；内存：32GB；存储：512GB SSD；网络：1Gbps；
+  - candidate_id: dev_hw_data_ai
+    app_type: 数据/AI平台
+    content: |
+      最低配置：CPU：8核 x86_64；内存：32GB；存储：512GB SSD；网络：1Gbps；
+      推荐配置：CPU：16核 x86_64；内存：64GB；存储：1TB SSD；网络：10Gbps；
+  - candidate_id: dev_hw_desktop
+    app_type: 桌面客户端软件
+    content: |
+      最低配置：CPU：4核 x86_64；内存：8GB；存储：256GB SSD；网络：50Mbps；
+      推荐配置：CPU：8核 x86_64；内存：16GB；存储：512GB SSD；网络：100Mbps；
+  - candidate_id: dev_hw_mobile
+    app_type: 移动端应用
+    content: |
+      最低配置：CPU：4核 x86_64；内存：16GB；存储：256GB SSD；网络：100Mbps；
+      推荐配置：CPU：8核 x86_64；内存：32GB；存储：512GB SSD；网络：1Gbps；
+  - candidate_id: dev_hw_iot
+    app_type: 工业物联网平台
+    content: |
+      最低配置：CPU：8核 x86_64；内存：32GB；存储：512GB SSD；网络：1Gbps；
+      推荐配置：CPU：16核 x86_64；内存：64GB；存储：1TB SSD；网络：10Gbps；
+  - candidate_id: dev_hw_fintech
+    app_type: 金融交易系统
+    content: |
+      最低配置：CPU：8核 x86_64；内存：32GB；存储：1TB SSD；网络：1Gbps；
+      推荐配置：CPU：16核 x86_64；内存：64GB；存储：2TB SSD；网络：10Gbps；
+  - candidate_id: dev_hw_medical
+    app_type: 医疗信息系统
+    content: |
+      最低配置：CPU：8核 x86_64；内存：32GB；存储：512GB SSD；网络：1Gbps；
+      推荐配置：CPU：16核 x86_64；内存：64GB；存储：1TB SSD；网络：10Gbps；
+  - candidate_id: dev_hw_edu
+    app_type: 教育平台
+    content: |
+      最低配置：CPU：4核 x86_64；内存：16GB；存储：256GB SSD；网络：100Mbps；
+      推荐配置：CPU：8核 x86_64；内存：32GB；存储：512GB SSD；网络：1Gbps；
+  - candidate_id: dev_hw_game
+    app_type: 游戏服务平台
+    content: |
+      最低配置：CPU：8核 x86_64；内存：32GB；存储：1TB SSD；网络：1Gbps；
+      推荐配置：CPU：16核 x86_64；内存：64GB；存储：2TB SSD；网络：10Gbps；
+
+tech__hardware_run:
+  - candidate_id: run_hw_web
+    app_type: B/S业务系统
+    content: |
+      客户端（最低/推荐）：CPU 4核/8核；内存 8GB/16GB；存储 20GB/50GB；网络 50Mbps/100Mbps；
+      服务器端（最低/推荐）：CPU 8核/16核；内存 32GB/64GB；存储 500GB SSD/1TB SSD；网络 1Gbps/10Gbps；
+      数据库/中间件服务器（最低/推荐）：CPU 8核/16核；内存 32GB/64GB；存储 1TB SSD/2TB SSD；网络 1Gbps/10Gbps；
+  - candidate_id: run_hw_data_ai
+    app_type: 数据/AI平台
+    content: |
+      客户端（最低/推荐）：CPU 8核/16核；内存 16GB/32GB；存储 50GB/100GB；网络 100Mbps/1Gbps；
+      服务器端（最低/推荐）：CPU 16核/32核；内存 64GB/128GB；存储 1TB SSD/2TB SSD；网络 10Gbps/25Gbps；
+      数据库/中间件服务器（最低/推荐）：CPU 16核/32核；内存 64GB/128GB；存储 2TB SSD/4TB SSD；网络 10Gbps/25Gbps；
+  - candidate_id: run_hw_desktop
+    app_type: 桌面客户端软件
+    content: |
+      客户端（最低/推荐）：CPU 4核/8核；内存 8GB/16GB；存储 50GB/100GB；网络 20Mbps/50Mbps；
+      服务器端（最低/推荐）：CPU 4核/8核；内存 16GB/32GB；存储 256GB SSD/512GB SSD；网络 100Mbps/1Gbps；
+      数据库/中间件服务器（最低/推荐）：CPU 8核/16核；内存 32GB/64GB；存储 1TB SSD/2TB SSD；网络 1Gbps/10Gbps；
+  - candidate_id: run_hw_mobile
+    app_type: 移动端应用
+    content: |
+      客户端（最低/推荐）：CPU 八核移动处理器/旗舰级八核；内存 4GB/8GB；存储 64GB/128GB；网络 4G/5G；
+      服务器端（最低/推荐）：CPU 8核/16核；内存 32GB/64GB；存储 500GB SSD/1TB SSD；网络 1Gbps/10Gbps；
+      数据库/中间件服务器（最低/推荐）：CPU 8核/16核；内存 32GB/64GB；存储 1TB SSD/2TB SSD；网络 1Gbps/10Gbps；
+  - candidate_id: run_hw_iot
+    app_type: 工业物联网平台
+    content: |
+      客户端（最低/推荐）：CPU 4核工业网关/8核工业网关；内存 8GB/16GB；存储 64GB/128GB；网络 100Mbps/1Gbps；
+      服务器端（最低/推荐）：CPU 16核/32核；内存 64GB/128GB；存储 1TB SSD/2TB SSD；网络 10Gbps/25Gbps；
+      数据库/中间件服务器（最低/推荐）：CPU 16核/32核；内存 64GB/128GB；存储 2TB SSD/4TB SSD；网络 10Gbps/25Gbps；
+  - candidate_id: run_hw_fintech
+    app_type: 金融交易系统
+    content: |
+      客户端（最低/推荐）：CPU 8核/16核；内存 16GB/32GB；存储 100GB/200GB；网络 100Mbps/1Gbps；
+      服务器端（最低/推荐）：CPU 32核/64核；内存 128GB/256GB；存储 2TB SSD/4TB SSD；网络 10Gbps/25Gbps；
+      数据库/中间件服务器（最低/推荐）：CPU 32核/64核；内存 128GB/256GB；存储 4TB SSD/8TB SSD；网络 10Gbps/25Gbps；
+  - candidate_id: run_hw_medical
+    app_type: 医疗信息系统
+    content: |
+      客户端（最低/推荐）：CPU 4核/8核；内存 8GB/16GB；存储 50GB/100GB；网络 50Mbps/100Mbps；
+      服务器端（最低/推荐）：CPU 16核/32核；内存 64GB/128GB；存储 1TB SSD/2TB SSD；网络 1Gbps/10Gbps；
+      数据库/中间件服务器（最低/推荐）：CPU 16核/32核；内存 64GB/128GB；存储 2TB SSD/4TB SSD；网络 1Gbps/10Gbps；
+  - candidate_id: run_hw_edu
+    app_type: 教育平台
+    content: |
+      客户端（最低/推荐）：CPU 4核/8核；内存 8GB/16GB；存储 20GB/50GB；网络 20Mbps/100Mbps；
+      服务器端（最低/推荐）：CPU 8核/16核；内存 32GB/64GB；存储 500GB SSD/1TB SSD；网络 1Gbps/10Gbps；
+      数据库/中间件服务器（最低/推荐）：CPU 8核/16核；内存 32GB/64GB；存储 1TB SSD/2TB SSD；网络 1Gbps/10Gbps；
+  - candidate_id: run_hw_game
+    app_type: 游戏服务平台
+    content: |
+      客户端（最低/推荐）：CPU 8核/16核；内存 16GB/32GB；存储 100GB/200GB；网络 100Mbps/1Gbps；
+      服务器端（最低/推荐）：CPU 32核/64核；内存 128GB/256GB；存储 2TB SSD/4TB SSD；网络 10Gbps/25Gbps；
+      数据库/中间件服务器（最低/推荐）：CPU 16核/32核；内存 64GB/128GB；存储 2TB SSD/4TB SSD；网络 10Gbps/25Gbps；
+
+tech__os_dev:
+  - candidate_id: dev_os_web
+    app_type: B/S业务系统
+    content: Windows 10/11（64位）；Ubuntu 20.04+（64位）；macOS 12+（64位）
+  - candidate_id: dev_os_data_ai
+    app_type: 数据/AI平台
+    content: Ubuntu 20.04+（64位）；CentOS 7+（64位）；Windows 11（64位）
+  - candidate_id: dev_os_desktop
+    app_type: 桌面客户端软件
+    content: Windows 10/11（64位）；macOS 12+（64位）
+  - candidate_id: dev_os_mobile
+    app_type: 移动端应用
+    content: macOS 12+（64位）；Windows 10/11（64位）；Ubuntu 20.04+（64位）
+  - candidate_id: dev_os_iot
+    app_type: 工业物联网平台
+    content: Ubuntu 20.04+（64位）；CentOS 7+（64位）；Windows 11（64位）
+  - candidate_id: dev_os_fintech
+    app_type: 金融交易系统
+    content: Ubuntu 22.04+（64位）；CentOS 7+（64位）；Windows 11（64位）
+  - candidate_id: dev_os_medical
+    app_type: 医疗信息系统
+    content: Windows 10/11（64位）；Ubuntu 20.04+（64位）；CentOS 7+（64位）
+  - candidate_id: dev_os_edu
+    app_type: 教育平台
+    content: Windows 10/11（64位）；Ubuntu 20.04+（64位）；macOS 12+（64位）
+  - candidate_id: dev_os_game
+    app_type: 游戏服务平台
+    content: Windows 10/11（64位）；Ubuntu 20.04+（64位）；macOS 12+（64位）
+
+tech__dev_tools:
+  - candidate_id: dev_tools_web
+    app_type: B/S业务系统
+    content: >-
+      IDE/编辑器：Visual Studio Code 1.80+；版本管理：Git 2.30+；语言/SDK/运行时：TypeScript 5.x、Node.js
+      18.x/20.x、Python 3.10+；构建/依赖管理：Vite 5.x、npm 9+/pnpm 8+；调试/接口：Chrome
+      DevTools、Postman 10+；数据库/数据：MySQL 8.0+、Redis 6+；CI/CD/容器：GitHub
+      Actions、Docker 24+。
+  - candidate_id: dev_tools_data_ai
+    app_type: 数据/AI平台
+    content: >-
+      IDE/编辑器：PyCharm 2023+、Visual Studio Code 1.80+；版本管理：Git 2.30+；语言/SDK/运行时：Python
+      3.10+、Java 17、Node.js 18.x；构建/依赖管理：Poetry/pip、Maven/Gradle、npm；调试/接口：JupyterLab、Postman；数据库/数据：PostgreSQL
+      14+、Redis 6+、MinIO；CI/CD/容器：GitLab CI、Docker 24+、Kubernetes 1.26+。
+  - candidate_id: dev_tools_desktop
+    app_type: 桌面客户端软件
+    content: >-
+      IDE/编辑器：Visual Studio 2022 或 JetBrains Rider；版本管理：Git 2.30+；语言/SDK/运行时：.NET
+      6/8、Python 3.10+；构建/依赖管理：MSBuild、NuGet、pip；调试/接口：Wireshark、Postman；数据库/数据：SQLite/MySQL
+      8.0；CI/CD/容器：Jenkins、Docker 24+。
+  - candidate_id: dev_tools_mobile
+    app_type: 移动端应用
+    content: >-
+      IDE/编辑器：Android Studio、Xcode、Visual Studio Code；版本管理：Git 2.30+；语言/SDK/运行时：Kotlin/Swift、Dart、Node.js
+      18.x；构建/依赖管理：Gradle、CocoaPods、npm；调试/接口：ADB、Charles、Postman；数据库/数据：SQLite、MySQL 8.0+；CI/CD/容器：Fastlane、GitHub Actions。
+  - candidate_id: dev_tools_iot
+    app_type: 工业物联网平台
+    content: >-
+      IDE/编辑器：Visual Studio Code、IntelliJ IDEA；版本管理：Git 2.30+；语言/SDK/运行时：Java 17、Python 3.10+、C/C++；构建/依赖管理：Maven/Gradle、pip、CMake；调试/接口：Postman、MQTTX；数据库/数据：PostgreSQL 14+、TimescaleDB、Redis 6+；CI/CD/容器：GitLab CI、Docker 24+、Kubernetes 1.26+。
+  - candidate_id: dev_tools_fintech
+    app_type: 金融交易系统
+    content: >-
+      IDE/编辑器：IntelliJ IDEA、Visual Studio Code；版本管理：Git 2.30+；语言/SDK/运行时：Java 17、Go 1.21+、Python 3.10+；构建/依赖管理：Maven/Gradle、Go Modules、pip；调试/接口：Postman、JMeter；数据库/数据：PostgreSQL 14+、Redis 6+；CI/CD/容器：Jenkins、Docker 24+、Kubernetes 1.26+。
+  - candidate_id: dev_tools_medical
+    app_type: 医疗信息系统
+    content: >-
+      IDE/编辑器：Visual Studio Code、IntelliJ IDEA；版本管理：Git 2.30+；语言/SDK/运行时：Java 17、Python 3.10+、Node.js 18.x；构建/依赖管理：Maven/Gradle、npm、pip；调试/接口：Postman、Swagger；数据库/数据：MySQL 8.0+、PostgreSQL 14+、Redis 6+；CI/CD/容器：GitLab CI、Docker 24+。
+  - candidate_id: dev_tools_edu
+    app_type: 教育平台
+    content: >-
+      IDE/编辑器：Visual Studio Code；版本管理：Git 2.30+；语言/SDK/运行时：TypeScript 5.x、Node.js 18.x、Python 3.10+；构建/依赖管理：Vite、npm/pnpm、pip；调试/接口：Chrome DevTools、Postman；数据库/数据：MySQL 8.0+、Redis 6+；CI/CD/容器：GitHub Actions、Docker 24+。
+  - candidate_id: dev_tools_game
+    app_type: 游戏服务平台
+    content: >-
+      IDE/编辑器：Rider、Visual Studio Code；版本管理：Git 2.30+；语言/SDK/运行时：C# .NET 8、C++17、Node.js 20.x；构建/依赖管理：MSBuild、CMake、npm；调试/接口：Wireshark、Postman、Perf 工具；数据库/数据：MySQL 8.0+、Redis 6+；CI/CD/容器：Jenkins、Docker 24+、Kubernetes 1.26+。
+
+tech__os_run:
+  - candidate_id: run_os_web
+    app_type: B/S业务系统
+    content: >-
+      客户端运行平台：B/S浏览器端（Windows 10/11、macOS 12+、Ubuntu 20.04+，Chrome 110+/Edge
+      110+）；服务器运行平台：Linux（Ubuntu 20.04+ 或 CentOS 7+）。
+  - candidate_id: run_os_data_ai
+    app_type: 数据/AI平台
+    content: 客户端运行平台：Web管理端（Windows 10/11、macOS 12+）；服务器运行平台：Linux（Ubuntu 20.04+、CentOS 7+，x86_64）。
+  - candidate_id: run_os_desktop
+    app_type: 桌面客户端软件
+    content: 客户端运行平台：Windows 10/11（64位）或 macOS 12+；服务器运行平台：Linux（Ubuntu 20.04+）或 Windows Server 2019+。
+  - candidate_id: run_os_mobile
+    app_type: 移动端应用
+    content: 客户端运行平台：Android 10+、iOS 14+；服务器运行平台：Linux（Ubuntu 20.04+ 或 CentOS 7+）。
+  - candidate_id: run_os_iot
+    app_type: 工业物联网平台
+    content: 客户端运行平台：Web管理端（Windows 10/11、macOS 12+）；服务器运行平台：Linux（Ubuntu 20.04+、CentOS 7+）；边缘节点平台：Linux（Ubuntu 20.04+）。
+  - candidate_id: run_os_fintech
+    app_type: 金融交易系统
+    content: 客户端运行平台：Web交易端（Windows 10/11、macOS 12+）；服务器运行平台：Linux（Ubuntu 22.04+、CentOS 7+）。
+  - candidate_id: run_os_medical
+    app_type: 医疗信息系统
+    content: 客户端运行平台：B/S浏览器端（Windows 10/11、macOS 12+）；服务器运行平台：Linux（Ubuntu 20.04+ 或 CentOS 7+）。
+  - candidate_id: run_os_edu
+    app_type: 教育平台
+    content: 客户端运行平台：B/S浏览器端与移动端（Android 10+、iOS 14+）；服务器运行平台：Linux（Ubuntu 20.04+）。
+  - candidate_id: run_os_game
+    app_type: 游戏服务平台
+    content: 客户端运行平台：Windows 10/11、Android 10+、iOS 14+；服务器运行平台：Linux（Ubuntu 20.04+、CentOS 7+）。
+
+tech__run_support:
+  - candidate_id: run_support_web
+    app_type: B/S业务系统
+    content: >-
+      运行时/应用环境：Node.js 18.x/20.x；Web服务/代理：Nginx 1.22+；数据库/存储：MySQL
+      8.0+；缓存：Redis 6+；容器/编排：Docker 24+（可选 Kubernetes 1.26+）；日志/监控：ELK
+      或 Loki。
+  - candidate_id: run_support_data_ai
+    app_type: 数据/AI平台
+    content: >-
+      运行时/应用环境：Python 3.10+、Java 17；Web服务/代理：Nginx 1.22+ 或 Apache APISIX；数据库/存储：PostgreSQL
+      14+、对象存储 MinIO；缓存：Redis 6+；消息队列：Kafka 3.x；容器/编排：Docker
+      24+、Kubernetes 1.26+；日志/监控：Prometheus + Grafana。
+  - candidate_id: run_support_desktop
+    app_type: 桌面客户端软件
+    content: >-
+      运行时/应用环境：.NET Runtime 6/8 或 Python Runtime 3.10+；Web服务/代理：Nginx
+      1.22+（如启用服务端）；数据库/存储：SQLite 3.x 或 MySQL 8.0+；缓存：Redis
+      6+（可选）；容器/编排：Docker 24+（可选）；日志/监控：本地日志 + ELK（可选）。
+  - candidate_id: run_support_mobile
+    app_type: 移动端应用
+    content: >-
+      运行时/应用环境：Node.js 18.x/20.x 或 Java 17；Web服务/代理：Nginx 1.22+；数据库/存储：MySQL 8.0+；缓存：Redis 6+；消息推送：FCM/APNs；容器/编排：Docker 24+、Kubernetes 1.26+；日志/监控：ELK 或 Sentry。
+  - candidate_id: run_support_iot
+    app_type: 工业物联网平台
+    content: >-
+      运行时/应用环境：Java 17、Python 3.10+；Web服务/代理：Nginx 1.22+；数据库/存储：PostgreSQL 14+、时序库 TimescaleDB；缓存：Redis 6+；消息队列：MQTT Broker（EMQX 5+）/Kafka 3.x；容器/编排：Docker 24+、Kubernetes 1.26+；日志/监控：Prometheus + Grafana。
+  - candidate_id: run_support_fintech
+    app_type: 金融交易系统
+    content: >-
+      运行时/应用环境：Java 17、Go 1.21+；Web服务/代理：Nginx 1.22+；数据库/存储：PostgreSQL 14+；缓存：Redis 6+；消息队列：Kafka 3.x；容器/编排：Docker 24+、Kubernetes 1.26+；日志/监控：Prometheus + Grafana、ELK。
+  - candidate_id: run_support_medical
+    app_type: 医疗信息系统
+    content: >-
+      运行时/应用环境：Java 17、Node.js 18.x；Web服务/代理：Nginx 1.22+；数据库/存储：MySQL 8.0+ 或 PostgreSQL 14+；缓存：Redis 6+；容器/编排：Docker 24+；日志/监控：ELK 或 Loki。
+  - candidate_id: run_support_edu
+    app_type: 教育平台
+    content: >-
+      运行时/应用环境：Node.js 18.x/20.x；Web服务/代理：Nginx 1.22+；数据库/存储：MySQL 8.0+；缓存：Redis 6+；对象存储：MinIO；容器/编排：Docker 24+、Kubernetes 1.26+（可选）；日志/监控：Prometheus + Grafana。
+  - candidate_id: run_support_game
+    app_type: 游戏服务平台
+    content: >-
+      运行时/应用环境：.NET 8 或 Node.js 20.x；Web服务/代理：Nginx 1.22+；数据库/存储：MySQL 8.0+；缓存：Redis 6+；消息队列：Kafka 3.x；容器/编排：Docker 24+、Kubernetes 1.26+；日志/监控：Prometheus + Grafana、ELK。
