@@ -18,8 +18,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    setup_logging()
     args_list = list(argv or sys.argv[1:])
+    setup_logging(debug="--debug" in args_list)
     if args_list and args_list[0].startswith("-") and args_list[0] not in {"-h", "--help"}:
         args_list = ["run", *args_list]
 
